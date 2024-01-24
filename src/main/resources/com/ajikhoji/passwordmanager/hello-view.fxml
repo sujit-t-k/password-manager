@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<Pane id="paneBase" fx:id="paneBase" maxHeight="550.0" maxWidth="1000.0" minHeight="650.0" minWidth="900.0" prefHeight="650.0" prefWidth="1000.0" style="-fx-effect: dropshadow(gaussian, violet, 50, 0, 0, 0); -fx-background-color: rgba(255, 255, 255, 0.5); -fx-background-insets: 50;" xmlns="http://javafx.com/javafx/17.0.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ajikhoji.passwordmanager.AppController">
+   <children>
+      <Line id="lineNorth" endX="950.0" endY="50.0" onMouseDragged="#eventMouseDragged" onMouseEntered="#eventMouseEntered" onMouseExited="#eventMouseExited" onMousePressed="#eventMousePressed" onMouseReleased="#eventMouseReleased" startX="50.0" startY="50.0" stroke="#61045a" strokeWidth="3.5" />
+      <Line id="lineWest" endX="50.0" endY="598.0" onMouseDragged="#eventMouseDragged" onMouseEntered="#eventMouseEntered" onMouseExited="#eventMouseExited" onMousePressed="#eventMousePressed" onMouseReleased="#eventMouseReleased" startX="50.0" startY="50.0" stroke="#61045a" strokeWidth="3.5" />
+      <Line id="lineSouth" endX="950.0" endY="600.0" layoutY="-1.0" onMouseDragged="#eventMouseDragged" onMouseEntered="#eventMouseEntered" onMouseExited="#eventMouseExited" onMousePressed="#eventMousePressed" onMouseReleased="#eventMouseReleased" startX="50.0" startY="600.0" stroke="#61045a" strokeWidth="3.5" />
+      <Line id="lineEast" endX="950.0" endY="598.0" onMouseDragged="#eventMouseDragged" onMouseEntered="#eventMouseEntered" onMouseExited="#eventMouseExited" onMousePressed="#eventMousePressed" onMouseReleased="#eventMouseReleased" startX="950.0" startY="50.0" stroke="#61045a" strokeWidth="3.5" />
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#61045a" height="35.0" onMouseDragged="#eventMouseDragged" onMouseEntered="#eventMouseEntered" onMouseExited="#eventMouseExited" onMousePressed="#eventMousePressed" onMouseReleased="#eventMouseReleased" stroke="#61045a" strokeType="INSIDE" width="900.0" x="50.0" y="50.0" />
+      <Circle id="circleClose" fx:id="circleClose" centerX="937.0" centerY="65.0" fill="#ff1f1f" layoutX="-4.0" layoutY="2.0" radius="11.0" stroke="#b90b0b" strokeType="INSIDE" />
+      <Circle id="circleMinimize" fx:id="circleMinimize" centerX="911.0" centerY="65.0" fill="DODGERBLUE" layoutX="-12.0" layoutY="2.0" radius="11.0" stroke="#1d0cf2" strokeType="INSIDE" />
+      <Line endX="58.0" endY="-87.0" layoutX="846.0" layoutY="154.0" mouseTransparent="true" startX="49.0" startY="-87.0" />
+      <Line endX="940.0" endY="70.0" layoutX="-2.0" layoutY="2.0" mouseTransparent="true" startX="931.0" startY="61.0" />
+      <Line endX="940.0" endY="61.0" layoutX="-2.0" layoutY="2.0" mouseTransparent="true" startX="931.0" startY="70.0" />
+      <Label layoutX="89.0" layoutY="56.0" mouseTransparent="true" text="Password Manager" textFill="#ffc70f">
+         <font>
+            <Font name="Wingdings 2" size="20.0" />
+         </font>
+      </Label>
+      <ScrollPane fx:id="paneContent" layoutX="151.0" layoutY="85.0" prefHeight="513.0" prefWidth="797.0">
+        <content>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0" />
+        </content>
+      </ScrollPane>
+      <VBox fx:id="vBoxOptions" layoutX="51.75" layoutY="85.0" minHeight="100.0" minWidth="100.0" prefHeight="295.0" prefWidth="100.0" style="-fx-background-color: transparent;" />
+      <ImageView fitHeight="35.0" fitWidth="28.0" layoutX="57.0" layoutY="55.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@images/appicon.png" />
+         </image>
+      </ImageView>
+   </children>
+</Pane>
