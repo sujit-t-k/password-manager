@@ -1,0 +1,29 @@
+#pane-menu {
+    -fx-background-color : -title-bar-bg;
+    -fx-border-width : 0px 3px 0px 0px;
+    -fx-border-color : -title-bar-bg;
+}
+
+.mnu-item-panel-unselected {
+    -fx-background-color : #323232;
+}
+
+.mnu-item-panel-selected {
+    -fx-background-color : #ABABAB;
+}
+
+.mnu-item-panel-unselected-hover {
+    -fx-background-color : #4A4A4A;
+}
+
+.mnu-item-panel-selected-hover {
+    -fx-background-color : #6E6E6E;
+}
+
+.text-unselected {
+    -fx-fill : #CDCDCD;
+}
+
+.text-selected {
+    -fx-fill : #012102;
+}

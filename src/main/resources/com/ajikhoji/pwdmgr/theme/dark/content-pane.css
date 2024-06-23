@@ -1,0 +1,170 @@
+* {
+    -background-primary : #363636;
+    -background-secondary : #191919;
+    -text-primary : #121212;
+    -text-secondary : #FFCC04;
+}
+
+#pane-content {
+    -fx-background-color : -background-primary;
+}
+/*************** Common ***************/
+.info-pane {
+    -fx-background-color : -background-secondary;
+}
+
+.button {
+    -fx-background-color : #7F7F7F;
+    -fx-border-color : #7F7F7F;
+    -fx-font-size : 16px;
+    -fx-text-fill : black;
+    -fx-border-width : 1.8px;
+    -fx-padding : 2px 9px 2px 9px;
+}
+
+.button:focused {
+    -fx-background-color : #4D4D4D;
+    -fx-text-fill : #feddef;
+}
+
+.button:hover {
+    -fx-border-color : #E0E0E0;
+    -fx-background-color : #eeeeee;
+    -fx-text-fill : #212130;
+}
+
+.text-field {
+    -fx-background-color : rgba(255,255,255,0.82);
+}
+
+.scroll-pane .viewport {
+  -fx-background-color: transparent;
+}
+
+.scroll-pane {
+  -fx-background-color: transparent;
+}
+/*********Related to 'Add New Data' ************/
+.circle-stage-untouched {
+    -fx-fill : #454545;
+    -fx-stroke : #B09BAD;
+    -fx-stroke-width : 3px;
+}
+
+.circle-stage-active {
+    -fx-fill : #454545;
+    -fx-stroke : #FEDDEF;
+    -fx-stroke-width : 3px;
+}
+
+.circle-stage-passed {
+    -fx-fill : #454545;
+    -fx-stroke : #FEDDEF;
+    -fx-stroke-width : 3px;
+}
+
+.line-track-empty {
+    -fx-stroke : #B09BAD;
+    -fx-stroke-width : 3px;
+}
+
+.line-track-finished {
+    -fx-stroke : #FEDDEF;
+    -fx-stroke-width : 3px;
+}
+
+.text-step-number {
+    -fx-fill : white;
+}
+
+.text-instruction-steps {
+    -fx-fill : #DEDFEF;
+}
+
+.text-title {
+    -fx-fill : #dedfef;
+}
+
+.line-title {
+    -fx-stroke : white;
+    -fx-stroke-width : 1.8px;
+}
+
+.line-divider {
+    -fx-stroke : #feddef;
+    -fx-stroke-width : 0.2px;
+    -fx-opacity : 0.7;
+}
+
+.text-label {
+    -fx-fill : white;
+}
+
+.info {
+    -fx-fill : orange;
+}
+
+.chkbox {
+    -fx-text-fill : white;
+}
+
+.pwd-incorrect {
+    -fx-border-color : red;
+    -fx-border-width : 1.5px;
+}
+
+.pwd-correct {
+    -fx-border-color : green;
+    -fx-border-width : 1.5px;
+}
+
+.link {
+    -fx-fill : #3BA1F5;
+    -fx-underline : true;
+}
+
+.link:hover {
+    -fx-fill : orange;
+}
+
+.link-not-available {
+    -fx-fill : red;
+}
+
+/************** View Data ****************/
+.btn-table, .btn-table:focused {
+    -fx-background-color : #FFCC52;
+    -fx-margin : 0px;
+    -fx-padding : 0px;
+    -fx-font-size : 0px;
+    -fx-border-width : 0px;
+}
+
+.btn-table:hover {
+    -fx-background-color : #FF931F;
+}
+
+.btn-link, .btn-link:focused {
+    -fx-background-color : #B7FF57;
+}
+
+.btn-link:hover {
+    -fx-background-color : #49FF24;
+}
+
+.table-view {
+    -fx-font-size : 16px;
+}
+
+.lbl-status {
+    -fx-background-color : #131313;
+    -fx-text-fill : #feeced;
+    -fx-padding : 5px;
+    -fx-margin : 5px;
+}
+
+/************** Settings ****************/
+.label-title {
+    -fx-background-color : transparent;
+    -fx-text-fill : white;
+}

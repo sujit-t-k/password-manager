@@ -1,0 +1,37 @@
+.root {
+    -title-bar-bg : #262626;
+    -text-primary : #FFCC04;
+}
+
+#title-pane {
+    -fx-background-color : -title-bar-bg;
+}
+
+#app-title {
+    -fx-fill: -text-primary;/*#dedeed;*/
+}
+
+#pane-close {
+    -fx-background-color : -title-bar-bg;
+}
+
+.title-button-line {
+    -fx-stroke: white;
+}
+
+#pane-close:hover {
+    -fx-background-color : #FF3D40;
+}
+
+.title-bar-button {
+    -fx-background-color : -title-bar-bg;
+}
+
+.title-bar-button:hover {
+    -fx-background-color : #595959;
+}
+
+.window-frame-line-inactive {
+    -fx-stroke: black;
+    -fx-stroke-width: 4px;
+}
