@@ -1,0 +1,36 @@
+.root {
+    -title-bar-bg : #262230;
+    -window-border : #443377;
+    -option-hover: #544464;
+}
+
+.title-pane {
+    -fx-background-color : -title-bar-bg;
+    -fx-border-color: -window-border;
+    -fx-border-width: 0 0 0.5px 0;
+}
+
+#pane-close {
+    -fx-background-color : -title-bar-bg;
+}
+
+#pane-close:hover {
+    -fx-background-color : #AB0B2F;
+}
+
+.title-button-line {
+    -fx-stroke: white;
+}
+
+.title-bar-button {
+    -fx-background-color : -title-bar-bg;
+    -fx-border-width: 0;
+}
+
+.title-bar-button:hover {
+    -fx-background-color : -option-hover;
+}
+
+.window-frame-border-line {
+    -fx-fill: -window-border;
+}

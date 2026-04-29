@@ -1,10 +1,6 @@
-module com.ajikhoji.pwdmgr {
+module org.ajikhoji.passwordmanager {
     requires javafx.controls;
-    requires javafx.fxml;
     requires java.sql;
-    requires org.hsqldb;
-    requires java.desktop;
 
-    exports com.ajikhoji.pwdmgr;
-    exports com.ajikhoji.db;
+    exports org.ajikhoji.passwordmanager;
 }

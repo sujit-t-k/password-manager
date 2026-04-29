@@ -5,30 +5,25 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.ajikhoji</groupId>
-    <artifactId>pwdmgr</artifactId>
+    <artifactId>PasswordManager</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>Password Manager Enhanced</name>
+    <name>PasswordManager</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>5.10.0</junit.version>
+        <junit.version>5.12.1</junit.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
-            <version>2.7.2</version>
-        </dependency>
-        <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>21</version>
+            <version>21.0.6</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>21</version>
+            <version>21.0.6</version>
         </dependency>
 
         <dependency>
@@ -50,10 +45,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <source>16</source>
+                    <target>16</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -65,7 +60,8 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>org.ajikhoji.pwdmgr/com.ajikhoji.pwdmgr.HelloApplication</mainClass>
+                            <mainClass>org.ajikhoji.passwordmanager/org.ajikhoji.passwordmanager.HelloApplication
+                            </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>
