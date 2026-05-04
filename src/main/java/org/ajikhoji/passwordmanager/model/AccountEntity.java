@@ -1,5 +1,6 @@
 package org.ajikhoji.passwordmanager.model;
 
+import org.ajikhoji.passwordmanager.util.Utility;
 import org.ajikhoji.passwordmanager.validator.AccountInfoValidator;
 
 import java.time.LocalDateTime;
@@ -101,6 +102,24 @@ public class AccountEntity {
         this.recentUpdateDateTime = recentUpdateDateTime;
     }
 
+    @Override
+    public boolean equals(final Object other) {
+        if(other instanceof AccountEntity ae) {
+            return
+                    this.accId == ae.accId &&
+                    this.accName.equals(ae.accName) &&
+                    this.accPassword.equals(ae.accPassword) &&
+                    this.platform.equals(ae.platform) &&
+                    Utility.isSameValuedObject(this.link, ae.link) &&
+                    this.usageCount == ae.usageCount &&
+                    this.labelId == ae.labelId &&
+                    this.createdDateTime.isEqual(ae.createdDateTime) &&
+                    Utility.isSameDateTimeValue(this.createdDateTime, ae.createdDateTime) &&
+                    Utility.isSameDateTimeValue(this.lastUsedDateTime, ae.lastUsedDateTime);
+        }
+        return false;
+    }
+
     public static AccountEntityBuilder Builder() {
         return new AccountEntityBuilder();
     }
@@ -122,44 +141,54 @@ public class AccountEntity {
             usageCount = 0;
         }
 
-        public void withAccountId(final long id) {
+        public AccountEntityBuilder withAccountId(final long id) {
             accId = id;
+            return this;
         }
 
-        public void withAccountName(final String accName) {
+        public AccountEntityBuilder withAccountName(final String accName) {
             this.accName = accName;
+            return this;
         }
 
-        public void withEncryptedAccountPassword(final String encryptedPassword) {
+        public AccountEntityBuilder withEncryptedAccountPassword(final String encryptedPassword) {
             this.accPassword = encryptedPassword;
+            return this;
         }
 
-        public void withAccountPlatform(final String platform) {
+        public AccountEntityBuilder withAccountPlatform(final String platform) {
             this.platform = platform;
+            return this;
         }
 
-        public void withLabelId(final long lblId) {
+        public AccountEntityBuilder withLabelId(final long lblId) {
             this.labelId = lblId;
+            return this;
         }
 
-        public void withLink(final String externalLink) {
+        public AccountEntityBuilder withLink(final String externalLink) {
             this.link = externalLink;
+            return this;
         }
 
-        public void withUsageCount(final int usageCount) {
+        public AccountEntityBuilder withUsageCount(final int usageCount) {
             this.usageCount = usageCount;
+            return this;
         }
 
-        public void withCreatedDateTime(final LocalDateTime ldtCreated) {
+        public AccountEntityBuilder withCreatedDateTime(final LocalDateTime ldtCreated) {
             this.createdDateTime = ldtCreated;
+            return this;
         }
 
-        public void withLastUsedDateTime(final LocalDateTime ldtLastUsed) {
+        public AccountEntityBuilder withLastUsedDateTime(final LocalDateTime ldtLastUsed) {
             this.lastUsedDateTime = ldtLastUsed;
+            return this;
         }
 
-        public void withLastUpdatedDateTime(final LocalDateTime ldtLastUpdated) {
+        public AccountEntityBuilder withLastUpdatedDateTime(final LocalDateTime ldtLastUpdated) {
             this.recentUpdateDateTime = ldtLastUpdated;
+            return this;
         }
 
         public AccountEntity build() {
