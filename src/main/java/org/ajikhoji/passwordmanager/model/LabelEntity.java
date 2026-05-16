@@ -3,6 +3,7 @@ package org.ajikhoji.passwordmanager.model;
 public class LabelEntity {
 
     public static final long UNDEFINED_LABEL_ID = -5;
+    public static final String DEFAULT_LABEL_NAME = "Unlabeled";
     private long labelId = UNDEFINED_LABEL_ID;
     private String labelName;
 
@@ -29,6 +30,11 @@ public class LabelEntity {
 
     public void setLabelName(String labelName) {
         this.labelName = labelName;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("LabelEntity (label id = %d, label name = %s)", labelId, labelName);
     }
 
 }

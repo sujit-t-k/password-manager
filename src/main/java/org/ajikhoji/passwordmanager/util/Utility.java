@@ -1,8 +1,21 @@
 package org.ajikhoji.passwordmanager.util;
 
+import javafx.application.Platform;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.DataFormat;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import org.ajikhoji.passwordmanager.config.AppConfig;
+import org.ajikhoji.passwordmanager.config.AppResources;
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Utility {
 
@@ -11,6 +24,9 @@ public class Utility {
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a");
 
     public static String getFormatedDateTimeString(final LocalDateTime ldt) {
+        if(ldt == null) {
+            return "NULL";
+        }
         return dtf.format(ldt);
     }
 
@@ -37,6 +53,99 @@ public class Utility {
             return false;
         }
         return ldt1.isEqual(ldt2);
+    }
+
+    public static void showErrorAlert(final String title, final String content) {
+        final Alert a = new Alert(Alert.AlertType.ERROR);
+        a.setTitle(title);
+        a.setContentText(content);
+        a.show();
+    }
+
+    public static <T> TableColumn<T, String> getCopyableTableColumn(final String tableHeader, final String mapToField) {
+        final TableColumn<T, String> tc = new TableColumn<>(tableHeader);
+        final AppResources ar = AppConfig.getAppResources();
+        tc.setCellValueFactory(new PropertyValueFactory<>(mapToField));
+        tc.setCellFactory(cellFactory -> new TableCell<>() {
+            @Override
+            public void updateItem(final String str, final boolean empty) {
+                if(empty || str == null || str.isEmpty()) {
+                    setText(getIndex() < getTableView().getItems().size() ? "-" : null);
+                } else {
+                    final ImageView imgViewCopy = new ImageView(ar.imgCopy);
+                    imgViewCopy.setFitHeight(20.0D);
+                    imgViewCopy.setFitWidth(20.0D);
+                    final Button btn = new Button("", imgViewCopy);
+                    btn.getStyleClass().add("btn-table");
+                    btn.setPrefSize(24.0D, 24.0D);
+                    btn.setMaxSize(24.0D, 24.0D);
+                    final Tooltip tp = new Tooltip("Copy to clipboard");
+                    final Tooltip tpDone = new Tooltip("Copied!");
+                    Tooltip.install(btn, tp);
+                    btn.setOnAction(e -> {
+                        copyText(str);
+                        imgViewCopy.setImage(ar.imgCopied);
+                        btn.setGraphic(imgViewCopy);
+                        Tooltip.uninstall(btn, tp);
+                        Tooltip.install(btn, tpDone);
+                    });
+                    setOnMouseEntered(e -> {
+                        if(getGraphic() != null) {
+                            imgViewCopy.setImage(ar.imgCopy);
+                            btn.setGraphic(imgViewCopy);
+                            Tooltip.uninstall(btn, tpDone);
+                            Tooltip.install(btn, tp);
+                            setGraphic(null);
+                        }
+                    });
+                    setOnMouseExited(e -> {
+                        imgViewCopy.setImage(ar.imgCopy);
+                        btn.setGraphic(imgViewCopy);
+                        Tooltip.uninstall(btn, tpDone);
+                        Tooltip.install(btn, tp);
+                        setGraphic(null);
+                    });
+                    setOnMouseEntered(e -> {
+                        setGraphic(btn);
+                    });
+                    setText(str);
+                }
+            }
+        });
+        return tc;
+    }
+
+    private final static Clipboard cb = Clipboard.getSystemClipboard();
+    private static void copyText(final String str) {
+        final Map<DataFormat, Object> copyMap = new HashMap<>();
+        copyMap.put(DataFormat.PLAIN_TEXT, str);
+        cb.setContent(copyMap);
+    }
+
+    public static <T> void autoFitColumnWidth(TableColumn<T, String> column) {
+        Platform.runLater(() -> {
+            double maxWidth = computeTextWidth(column.getText().repeat(2), Font.getDefault()) * 0.7D + 20.0;
+
+            for (T item : column.getTableView().getItems()) {
+                if (item != null) {
+                    String cellData = column.getCellData(item);
+                    if (cellData != null) {
+                        double cellWidth = computeTextWidth(cellData.repeat(2), Font.getDefault()) * 0.7D + 25.0;
+                        if (cellWidth > maxWidth) {
+                            maxWidth = cellWidth;
+                        }
+                    }
+                }
+            }
+
+            column.setPrefWidth(maxWidth);
+        });
+    }
+
+    private static double computeTextWidth(String text, Font font) {
+        final Text helper = new Text(text);
+        helper.setFont(font);
+        return helper.getLayoutBounds().getWidth();
     }
 
 }

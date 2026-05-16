@@ -44,7 +44,7 @@ public class HsqlLabelRepo implements LabelRepo {
     @Override
     public void deleteLabel(LabelEntity entityToDelete) {
         try {
-            final String queryDeleteLabelRecordById = "DELETE FROM Accounts WHERE label_id = ?;";
+            final String queryDeleteLabelRecordById = "DELETE FROM Labels WHERE label_id = ?;";
             final PreparedStatement psDelete = conn.prepareStatement(queryDeleteLabelRecordById);
             psDelete.setLong(1, entityToDelete.getLabelId());
 
@@ -61,11 +61,10 @@ public class HsqlLabelRepo implements LabelRepo {
     public List<LabelEntity> getAllLabels() {
         final List<LabelEntity> allLabels = new ArrayList<>();
         try {
-            final String queryRetrieveAllAccountInfo = "SELECT * FROM Accounts;";
+            final String queryRetrieveAllAccountInfo = "SELECT * FROM Labels;";
             final PreparedStatement psRetrieve = conn.prepareStatement(queryRetrieveAllAccountInfo);
-            psRetrieve.executeUpdate();
 
-            final ResultSet rs = psRetrieve.getResultSet();
+            final ResultSet rs = psRetrieve.executeQuery();
             while(rs.next()) {
                 final long labelId = rs.getLong("label_id");
                 final String labelName = rs.getString("label_name");

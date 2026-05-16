@@ -1,16 +1,15 @@
 package org.ajikhoji.passwordmanager.util;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /*
  * This data structure is used to maintain uniqueness of value (T + U) combined.
  * In other words, this structure provides O(1) look-up methods such that (T + U) value is always unique.
- * Note that this is not commutative: T + U <> U + T
+ * Note that this is not commutative: T + U <> U + T. Also note that this implementation is not thread-safe.
  */
 public class TwoLevelLookupMap<T, U> {
+
+    public record Entry<T, U>(T key, U  value) {}
 
     private final Map<T, Set<U>> firstLevel;
 
@@ -32,8 +31,36 @@ public class TwoLevelLookupMap<T, U> {
      * Return true if the combined value of (T + U) is present and removes it, otherwise returns false.
      */
     public boolean unregister(final T levelOneValue, final U levelTwoValue) {
-        final Set<U> secondLevel = firstLevel.getOrDefault(levelOneValue, new HashSet<>());
-        return secondLevel.remove(levelTwoValue);
+        final Set<U> secondLevel = firstLevel.get(levelOneValue);
+        if (secondLevel == null) return false;
+        boolean removed = secondLevel.remove(levelTwoValue);
+        if (secondLevel.isEmpty()) {
+            firstLevel.remove(levelOneValue);
+        }
+        return removed;
+    }
+
+    /*
+     * Return true if the combined value of (T + U) is present, otherwise returns false.
+     */
+    public boolean contains(final T levelOneValue, final U levelTwoValue) {
+        final Set<U> secondLevel = firstLevel.get(levelOneValue);
+        return secondLevel != null && secondLevel.contains(levelTwoValue);
+    }
+
+    /*
+     * Returns all pairs of (T, U) that are registered
+     */
+    public Set<Entry<T, U>> getPairSet() {
+        final Set<Entry<T, U>> required = new HashSet<>();
+
+        for(final Map.Entry<T, Set<U>> e : firstLevel.entrySet()) {
+            for(final U value : e.getValue()) {
+                required.add(new Entry<>(e.getKey(), value));
+            }
+        }
+
+        return required;
     }
 
 }

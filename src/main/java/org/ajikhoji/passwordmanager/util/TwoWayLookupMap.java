@@ -50,4 +50,9 @@ public class TwoWayLookupMap<T, U> {
         return firstTypeKeyToSecondTypeKey.remove(keyOne, keyTwo) || secondTypeKeyToFirstTypeKey.remove(keyTwo, keyOne);
     }
 
+    public void clear() {
+        firstTypeKeyToSecondTypeKey.clear();
+        secondTypeKeyToFirstTypeKey.clear();
+    }
+
 }

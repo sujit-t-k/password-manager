@@ -114,10 +114,28 @@ public class AccountEntity {
                     this.usageCount == ae.usageCount &&
                     this.labelId == ae.labelId &&
                     this.createdDateTime.isEqual(ae.createdDateTime) &&
-                    Utility.isSameDateTimeValue(this.createdDateTime, ae.createdDateTime) &&
+                    Utility.isSameDateTimeValue(this.recentUpdateDateTime, ae.recentUpdateDateTime) &&
                     Utility.isSameDateTimeValue(this.lastUsedDateTime, ae.lastUsedDateTime);
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return String.format
+            ("AccountEntity(id = %d, name = %s, password = %s, platform = %s, label id = %d, link = %s, " +
+                "usage count = %d, created at = %s, last updated = %s, last used = %s)",
+                this.accId,
+                this.accName,
+                this.accPassword,
+                this.platform,
+                this.labelId,
+                this.link,
+                this.usageCount,
+                Utility.getFormatedDateTimeString(this.createdDateTime),
+                Utility.getFormatedDateTimeString(this.recentUpdateDateTime),
+                Utility.getFormatedDateTimeString(this.lastUsedDateTime)
+            );
     }
 
     public static AccountEntityBuilder Builder() {

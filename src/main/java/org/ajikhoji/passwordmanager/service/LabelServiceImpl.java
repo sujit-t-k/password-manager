@@ -44,7 +44,14 @@ public class LabelServiceImpl implements LabelService {
 
     @Override
     public List<LabelEntity> getAllLabels() {
-        return repo.getAllLabels();
+        final List<LabelEntity> allLabels = repo.getAllLabels();
+        idToEntity.clear();
+        idAndName.clear();
+        for(final LabelEntity le : allLabels) {
+            idToEntity.put(le.getLabelId(), le);
+            idAndName.put(le.getLabelId(), le.getLabelName());
+        }
+        return allLabels;
     }
 
     @Override

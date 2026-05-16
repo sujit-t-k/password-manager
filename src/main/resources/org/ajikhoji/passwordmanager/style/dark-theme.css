@@ -478,7 +478,7 @@
 }
 
 /************** View Data ****************/
-.btn-table, .btn-table:focused {
+.btn-table, .btn-table:focus {
     -fx-background-color : #FFCC52;
     -fx-margin : 0px;
     -fx-padding : 0px;
@@ -488,6 +488,30 @@
 
 .btn-table:hover {
     -fx-background-color : #FF931F;
+}
+
+.btn-table-delete, .btn-table-delete:focus {
+    -fx-background-color : #D11250;
+    -fx-margin : 0px;
+    -fx-padding : 0px;
+    -fx-font-size : 0px;
+    -fx-border-width : 0px;
+}
+
+.btn-table-delete:hover {
+    -fx-background-color : #99083A;
+}
+
+.btn-table-edit, .btn-table-edit:focus {
+    -fx-background-color : #097DDB;
+    -fx-margin : 0px;
+    -fx-padding : 0px;
+    -fx-font-size : 0px;
+    -fx-border-width : 0px;
+}
+
+.btn-table-edit:hover {
+    -fx-background-color : #075799;
 }
 
 .btn-link, .btn-link:focused {

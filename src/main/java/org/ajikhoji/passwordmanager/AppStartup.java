@@ -10,8 +10,10 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.ajikhoji.passwordmanager.config.AppConfig;
+import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.config.SideBarItem;
 import org.ajikhoji.passwordmanager.ui_components.AppFrame;
+import org.ajikhoji.passwordmanager.view.AddNewAccountScreen;
 
 import java.util.function.Consumer;
 
@@ -19,12 +21,21 @@ public class AppStartup extends Application {
 
     @Override
     public void start(Stage stage) {
+        DbConfig.initDb();
+        AppConfig.setPrimaryStage(stage);
         AppConfig.setAppFrame(new AppFrame(stage, AppConfig.getScreenWidth() * 0.5D, AppConfig.getScreenHeight() * 0.7D));
         addAppTitleAndSideBar(
             AppConfig.getAppFrame(),
             AppConfig.getAppName(),
             selectedMenuItem -> {
-
+                switch (selectedMenuItem) {
+                    case ADD_NEW -> {
+                        AppConfig.setCurrentDisplayPage(new AddNewAccountScreen(e -> {}));
+                    }
+                }
+        });
+        stage.setOnCloseRequest(e -> {
+            DbConfig.closeDb();
         });
         stage.show();
     }

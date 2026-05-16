@@ -68,9 +68,8 @@ public class HsqlAccountRepo implements AccountRepo {
         try {
             final String queryRetrieveAllAccountInfo = "SELECT * FROM Accounts;";
             final PreparedStatement psRetrieve = conn.prepareStatement(queryRetrieveAllAccountInfo);
-            psRetrieve.executeUpdate();
 
-            final ResultSet rs = psRetrieve.getResultSet();
+            final ResultSet rs = psRetrieve.executeQuery();
             while (rs.next()) {
                 final long accId = rs.getLong("account_id");
                 final String accName = rs.getString("account_name");
