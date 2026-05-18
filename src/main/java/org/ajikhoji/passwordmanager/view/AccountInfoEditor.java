@@ -108,9 +108,7 @@ public class AccountInfoEditor extends BorderPane {
         spDetail.setFitToHeight(true);
         bpBase.setCenter(spDetail);
 
-        record EntryField(StringProperty textProperty, StringProperty errorMessageProperty) {}
-
-        final BiFunction<String, Integer, EntryField> field = (fieldName, maxLength) -> {
+        final BiFunction<String, Integer, Utility.EntryField> field = (fieldName, maxLength) -> {
             final Label lbl = new Label(fieldName);
             final Node n = fieldName.contains("Password") ? new ToggleableTextField() : new TextField();
             final StringProperty errorMessage = new SimpleStringProperty("");
@@ -152,17 +150,17 @@ public class AccountInfoEditor extends BorderPane {
             });
             vbxCenter.getChildren().add(v);
             if(n instanceof TextField tf) {
-                return new EntryField(tf.textProperty(), errorMessage);
+                return new Utility.EntryField(tf.textProperty(), errorMessage);
             }
             final ToggleableTextField ttf = (ToggleableTextField) n;
-            return new EntryField(ttf.getTextProperty(), errorMessage);
+            return new Utility.EntryField(ttf.getTextProperty(), errorMessage);
         };
-        sspName = field.apply("Account Name / ID", 90).textProperty;
-        sspPassword = field.apply("Password", 50).textProperty;
+        sspName = field.apply("Account Name / ID", 90).textProperty();
+        sspPassword = field.apply("Password", 50).textProperty();
         field.apply("Confirm Password", 50);
         vbxCenter.getChildren().add(hbxLabel);
-        sspPlatform = field.apply("Platform", 90).textProperty;
-        sspLink = field.apply("Link", 300).textProperty;
+        sspPlatform = field.apply("Platform", 90).textProperty();
+        sspLink = field.apply("Link", 300).textProperty();
         vbxCenter.getChildren().add(customFieldEditor);
     }
 

@@ -1,0 +1,6 @@
+package org.ajikhoji.passwordmanager.security;
+
+public interface EncryptionService {
+    String encrypt(String plainText);
+    String decrypt(String cipherText);
+}

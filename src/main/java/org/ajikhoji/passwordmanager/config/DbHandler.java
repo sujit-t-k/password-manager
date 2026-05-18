@@ -148,6 +148,15 @@ public class DbHandler {
                 );
                 """;
         this.executeQuery(queryCreateAccountsCustomFieldsTable);
+
+        final String queryCreateAppSettingsRelation =
+                """
+                CREATE TABLE IF NOT EXISTS AppSettings (
+                    setting_key VARCHAR(33) PRIMARY KEY,
+                    setting_value VARCHAR(255) NOT NULL
+                );
+                """;
+        this.executeQuery(queryCreateAppSettingsRelation);
     }
 
     public Connection getConnection() {

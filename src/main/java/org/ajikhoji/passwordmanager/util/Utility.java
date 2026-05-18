@@ -1,15 +1,22 @@
 package org.ajikhoji.passwordmanager.util;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
+import org.ajikhoji.passwordmanager.ui_components.ToggleableTextField;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -146,6 +153,63 @@ public class Utility {
         final Text helper = new Text(text);
         helper.setFont(font);
         return helper.getLayoutBounds().getWidth();
+    }
+
+    public record EntryField(StringProperty textProperty, StringProperty errorMessageProperty) {}
+
+    public static EntryField addLabeledTextField(final String fieldName, final int maxLength, final Pane parent) {
+        return addLabeledTextField(fieldName, null, maxLength, parent);
+    }
+
+    public static EntryField addLabeledTextField(final String fieldName, final String placeHolder, final int maxLength, final Pane parent) {
+        final Label lbl = new Label(fieldName);
+        final Node n = fieldName.contains("Password") || fieldName.contains("password") ? new ToggleableTextField() : new TextField();
+        final StringProperty errorMessage = new SimpleStringProperty("");
+        final Label lblLength = new Label("0 / " + maxLength);
+        StringProperty textProperty = null;
+        if(n instanceof TextField tf) {
+            if(placeHolder != null) {
+                tf.setPromptText(placeHolder);
+            }
+            textProperty = tf.textProperty();
+            tf.setPrefColumnCount(maxLength);
+            tf.setMaxWidth(Region.USE_PREF_SIZE);
+        } else if (n instanceof ToggleableTextField ttf) {
+            textProperty = ttf.getTextProperty();
+        }
+        final StringProperty tp = textProperty;
+        tp.addListener((ol, ov, nv) -> {
+            if (nv == null) {
+                lblLength.setText("0 / " + maxLength);
+                return;
+            }
+            errorMessage.set("");
+            if (nv.length() > maxLength) {
+                tp.set(ov);
+                return;
+            }
+            lblLength.setText(nv.length() + " / " + maxLength);
+        });
+
+        final Label lblErrorReason = new Label();
+        lblErrorReason.setStyle("-fx-text-fill: #D40F37; -fx-background-color: #240309; -fx-padding: 4px;");
+        final VBox v = new VBox(6.0D, lbl, n, lblLength);
+        errorMessage.addListener((ol, ov, nv) -> {
+            if (nv == null || nv.isBlank()) {
+                v.getChildren().remove(lblErrorReason);
+            } else {
+                lblErrorReason.setText(errorMessage.getValue());
+                if (!v.getChildren().contains(lblErrorReason)) {
+                    v.getChildren().add(lblErrorReason);
+                }
+            }
+        });
+        parent.getChildren().add(v);
+        if(n instanceof TextField tf) {
+            return new EntryField(tf.textProperty(), errorMessage);
+        }
+        final ToggleableTextField ttf = (ToggleableTextField) n;
+        return new EntryField(ttf.getTextProperty(), errorMessage);
     }
 
 }

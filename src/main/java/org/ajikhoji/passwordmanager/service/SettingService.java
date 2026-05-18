@@ -1,0 +1,15 @@
+package org.ajikhoji.passwordmanager.service;
+
+public interface SettingService {
+
+    void setHash(String hashedString);
+    String getHash();
+    void setSalt(String saltedstring);
+    String getSalt();
+    void setUserName(String name);
+    String getUserName();
+    void setHint(String hint);
+    String getHint();
+    boolean isSetupDone();
+
+}

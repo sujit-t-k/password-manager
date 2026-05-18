@@ -107,7 +107,7 @@ public class AccountCustomFieldViewer extends TableView<AccountCustomFieldEntity
 
     private void adjustTableViewHeight() {
         Platform.runLater(() -> {
-            // Force JavaFX to apply CSS and layout the current state of the table
+            // Force to apply CSS and layout the current state of the table
             applyCss();
             layout();
 
