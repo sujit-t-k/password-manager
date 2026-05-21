@@ -10,6 +10,7 @@ import javafx.scene.layout.VBox;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.SideBarItem;
 import org.ajikhoji.passwordmanager.ui_components.AppFrame;
+import org.ajikhoji.passwordmanager.viewmodel.AddNewAccountViewModel;
 
 import java.util.function.Consumer;
 
@@ -19,6 +20,7 @@ public class AppMainScreen {
     public static void init() {
         //setting up app title bar
         final HBox hbxTitleBar = AppConfig.getAppFrame().getTitleBar();
+        hbxTitleBar.getChildren().clear();
         hbxTitleBar.setAlignment(Pos.CENTER_LEFT);
         final Label lblAppTitle = new Label(AppConfig.getAppName());
         lblAppTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 0 0 14px;");
@@ -30,13 +32,17 @@ public class AppMainScreen {
         selectedMenuItem -> {
             switch (selectedMenuItem) {
                 case ADD_NEW -> {
-                    AppConfig.setCurrentDisplayPage(new AddNewAccountScreen(e -> {}));
+                    AppConfig.setCurrentDisplayPage(new AddNewAccountScreen(AddNewAccountViewModel.getInstance(), e -> {}));
+                }
+                case VIEW_ALL -> {
+                    AppConfig.setCurrentDisplayPage(new ViewAccountCredentialScreen());
                 }
             }
         });
     }
 
     private static void addAppSideBar(final AppFrame af, final Consumer<SideBarItem> onMenuItemSelected) {
+        af.getPane().getChildren().clear();
         class SideMenuItem extends HBox {
             public static SideMenuItem selectedItem = null;
             public final SideBarItem item;
@@ -98,6 +104,9 @@ public class AppMainScreen {
             if(panePrevious != null) {
                 panePrevious.prefWidthProperty().unbind();
                 panePrevious.prefHeightProperty().unbind();
+                if(panePrevious instanceof AddNewAccountScreen screen) {
+                    screen.saveInfo();
+                }
             }
             panePageView.getChildren().clear();
             if(pageContent != null) {

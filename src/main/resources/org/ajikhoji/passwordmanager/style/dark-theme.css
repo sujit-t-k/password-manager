@@ -675,3 +675,11 @@
 .menu-item .graphic {
     -fx-padding: 0 8 0 0;
 }
+
+.info-scroll {
+    -fx-background-color: #141416;
+}
+
+.info-scroll > .viewport {
+    -fx-background-color: #141416;
+}

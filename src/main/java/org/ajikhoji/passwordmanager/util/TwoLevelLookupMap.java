@@ -63,4 +63,11 @@ public class TwoLevelLookupMap<T, U> {
         return required;
     }
 
+    public void clear() {
+        for(final Set<U> sets : firstLevel.values()) {
+            sets.clear();
+        }
+        firstLevel.clear();
+    }
+
 }

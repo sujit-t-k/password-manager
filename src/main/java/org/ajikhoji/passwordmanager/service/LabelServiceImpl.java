@@ -19,6 +19,7 @@ public class LabelServiceImpl implements LabelService {
         idToEntity = new HashMap<>();
         idAndName = new TwoWayLookupMap<>();
         this.repo = repo;
+        getAllLabels();
     }
 
     @Override

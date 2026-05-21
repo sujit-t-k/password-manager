@@ -185,7 +185,9 @@ public class AccountEntity {
         }
 
         public AccountEntityBuilder withLink(final String externalLink) {
-            this.link = externalLink;
+            if(externalLink != null && !externalLink.isBlank()) {
+                this.link = externalLink;
+            }
             return this;
         }
 

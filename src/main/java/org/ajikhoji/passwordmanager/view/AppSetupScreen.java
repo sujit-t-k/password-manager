@@ -1,5 +1,6 @@
 package org.ajikhoji.passwordmanager.view;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -49,7 +50,7 @@ public class AppSetupScreen {
         vbxParent.getChildren().clear();
         vbxParent.setSpacing(AppConfig.getScreenHeight() * 0.1D);
 
-        final Label lblHeader = new Label("Welcome to Ajikhoji's password manager.");
+        final Label lblHeader = new Label("Welcome to Ajikhoji's password manager");
         lblHeader.setStyle("-fx-font-size: 28px; -fx-font-wieght: bold;");
         vbxParent.getChildren().add(lblHeader);
 
@@ -133,11 +134,11 @@ public class AppSetupScreen {
             }
             password = pass;
             hint = hintString;
-            verifyPassword();
+            verifyPassword(false);
         });
     }
 
-    private void verifyPassword() {
+    private void verifyPassword(final boolean populateData) {
         vbxParent.getChildren().clear();
         vbxParent.setSpacing(AppConfig.getScreenHeight() * 0.1D);
 
@@ -177,8 +178,38 @@ public class AppSetupScreen {
                 passwordField.errorMessageProperty().set("Password does not match");
                 return;
             }
-            postSuccessfulValidation.accept(new String[]{userName, hint, password});
+            showWaitingScreen();
         });
+        if(populateData) {
+            passwordField.textProperty().set(password);
+        }
+    }
+
+    private void showWaitingScreen() {
+        Platform.runLater(() -> {
+            vbxParent.getChildren().clear();
+            vbxParent.setSpacing(AppConfig.getScreenHeight() * 0.1D);
+
+            final Label lblHeader = new Label("Almost there");
+            lblHeader.setStyle("-fx-font-size: 32px; -fx-font-wieght: bold;");
+            final Label lblPrompt = new Label("Setting things up");
+            final VBox vbxTop = new VBox(4.0D, lblHeader, lblPrompt);
+            vbxTop.setAlignment(Pos.CENTER);
+            final HBox hbxTop = new HBox(8.0D, vbxTop);
+            hbxTop.setAlignment(Pos.CENTER);
+            vbxParent.getChildren().add(hbxTop);
+        });
+
+        new Thread(() -> {
+            Platform.runLater(() -> {
+                try {
+                    postSuccessfulValidation.accept(new String[]{userName, hint, password});
+                } catch (Exception e) {
+                    Utility.showErrorAlert("Registration failed", "Something went wrong. Try again later.");
+                    verifyPassword(true);
+                }
+            });
+        }).start();
     }
 
 }

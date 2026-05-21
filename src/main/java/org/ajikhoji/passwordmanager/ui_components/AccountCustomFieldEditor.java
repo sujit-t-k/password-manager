@@ -6,7 +6,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.ajikhoji.passwordmanager.model.AccountCustomFieldEntity;
-
 import java.util.List;
 
 public class AccountCustomFieldEditor extends VBox {
@@ -36,6 +35,10 @@ public class AccountCustomFieldEditor extends VBox {
 
     public AccountCustomFieldEditor(final List<AccountCustomFieldEntity> entries) {
         this();
+        setAll(entries);
+    }
+
+    public void setAll(final List<AccountCustomFieldEntity> entries) {
         viewer.setAll(entries);
     }
 

@@ -20,6 +20,7 @@ public class AccountServiceImpl implements AccountService {
     public AccountServiceImpl(final AccountRepo repo) {
         this.repo = repo;
         this.nameAndPlatform = new TwoLevelLookupMap<>();
+        getAllAccountCredential();
     }
 
     @Override
@@ -28,7 +29,7 @@ public class AccountServiceImpl implements AccountService {
         final String platform = newEntity.getPlatform();
         if(!nameAndPlatform.register(accIName, platform)) {
             throw new ValidationException("""
-                Cannot save account credential because there is already an existing account credential saved with same account name and platform
+                Account credential with same account name and platform already exists
             """);
         }
         try {
@@ -57,7 +58,12 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public List<AccountEntity> getAllAccountCredential() {
-        return repo.getAllAccountCredential();
+        final List<AccountEntity> allEntities = repo.getAllAccountCredential();
+        nameAndPlatform.clear();
+        for(final AccountEntity ae : allEntities) {
+            nameAndPlatform.register(ae.getAccName(), ae.getPlatform());
+        }
+        return allEntities;
     }
 
 }

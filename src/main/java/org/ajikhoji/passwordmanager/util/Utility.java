@@ -69,6 +69,13 @@ public class Utility {
         a.show();
     }
 
+    public static void showInformationAlert(final String title, final String content) {
+        final Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle(title);
+        a.setContentText(content);
+        a.show();
+    }
+
     public static <T> TableColumn<T, String> getCopyableTableColumn(final String tableHeader, final String mapToField) {
         final TableColumn<T, String> tc = new TableColumn<>(tableHeader);
         final AppResources ar = AppConfig.getAppResources();
@@ -123,7 +130,7 @@ public class Utility {
     }
 
     private final static Clipboard cb = Clipboard.getSystemClipboard();
-    private static void copyText(final String str) {
+    public static void copyText(final String str) {
         final Map<DataFormat, Object> copyMap = new HashMap<>();
         copyMap.put(DataFormat.PLAIN_TEXT, str);
         cb.setContent(copyMap);
@@ -149,7 +156,7 @@ public class Utility {
         });
     }
 
-    private static double computeTextWidth(String text, Font font) {
+    public static double computeTextWidth(String text, Font font) {
         final Text helper = new Text(text);
         helper.setFont(font);
         return helper.getLayoutBounds().getWidth();

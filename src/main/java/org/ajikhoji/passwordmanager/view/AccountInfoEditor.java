@@ -21,15 +21,17 @@ import java.util.function.BiFunction;
 
 public class AccountInfoEditor extends BorderPane {
 
-    protected StringProperty sspName;
-    protected StringProperty sspPassword;
-    protected StringProperty sspPlatform;
-    protected StringProperty sspLink;
+    protected Utility.EntryField efName;
+    protected Utility.EntryField efPassword;
+    protected Utility.EntryField efConfirmPassword;
+    protected Utility.EntryField efPlatform;
+    protected Utility.EntryField efLink;
     protected final ChoiceBox<LabelEntity> cbxLabel;
     protected final AccountCustomFieldEditor customFieldEditor;
     protected final Button btnSave;
     protected final Label lblHeader;
-
+    protected final FlowPane fpControls;
+    
     public AccountInfoEditor() {
         cbxLabel = new ChoiceBox<>(FXCollections.observableArrayList(DbConfig.getLabelService().getAllLabels()));
         cbxLabel.setConverter(new StringConverter<>() {
@@ -87,17 +89,13 @@ public class AccountInfoEditor extends BorderPane {
         btnSave = new Button("Save");
         final Button btnClear = new Button("Clear");
         btnClear.setOnAction(e -> {
-            sspName.set("");
-            sspPassword.set("");
-            sspPlatform.set("");
-            sspLink.set("");
-            cbxLabel.getSelectionModel().select(DbConfig.getLabelService().getLabelEntityByName(LabelEntity.DEFAULT_LABEL_NAME));
+            clearData();
         });
-        final FlowPane foControls = new FlowPane(btnClear, btnSave);
-        foControls.setHgap(12.0D);
-        foControls.setAlignment(Pos.CENTER);
-        foControls.setStyle("-fx-background-color: #202020; -fx-padding: 8px 0px 8px 0px;");
-        bpBase.setBottom(foControls);
+        fpControls = new FlowPane(btnClear, btnSave);
+        fpControls.setHgap(12.0D);
+        fpControls.setAlignment(Pos.CENTER);
+        fpControls.setStyle("-fx-background-color: #202020; -fx-padding: 8px 0px 8px 0px;");
+        bpBase.setBottom(fpControls);
 
         //middle area for showing input controls
         final VBox vbxCenter = new VBox(14.0D);
@@ -118,7 +116,8 @@ public class AccountInfoEditor extends BorderPane {
                 textProperty = tf.textProperty();
                 tf.setPrefColumnCount(90);
                 tf.setMaxWidth(Region.USE_PREF_SIZE);
-            } else if (n instanceof ToggleableTextField ttf) {
+            } else {
+                final ToggleableTextField ttf = (ToggleableTextField) n;
                 textProperty = ttf.getTextProperty();
             }
             final StringProperty tp = textProperty;
@@ -155,13 +154,64 @@ public class AccountInfoEditor extends BorderPane {
             final ToggleableTextField ttf = (ToggleableTextField) n;
             return new Utility.EntryField(ttf.getTextProperty(), errorMessage);
         };
-        sspName = field.apply("Account Name / ID", 90).textProperty();
-        sspPassword = field.apply("Password", 50).textProperty();
-        field.apply("Confirm Password", 50);
+        efName = field.apply("Account Name / ID", 90);
+        efPassword = field.apply("Password", 50);
+        efConfirmPassword = field.apply("Confirm Password", 50);
         vbxCenter.getChildren().add(hbxLabel);
-        sspPlatform = field.apply("Platform", 90).textProperty();
-        sspLink = field.apply("Link", 300).textProperty();
+        efPlatform = field.apply("Platform", 90);
+        efLink = field.apply("Link", 300);
         vbxCenter.getChildren().add(customFieldEditor);
+
+        efName.textProperty().addListener((ol, ov, nv) -> {
+            if(nv == null || nv.isBlank()) {
+                efName.errorMessageProperty().set("Name should not be empty");
+            }
+            updateButton();
+        });
+        efPassword.textProperty().addListener((ol, ov, nv) -> {
+            if(nv == null || nv.isBlank()) {
+                efPassword.errorMessageProperty().set("Password should not be empty");
+            }
+            if(!efPassword.textProperty().get().equals(efConfirmPassword.textProperty().get())) {
+                efConfirmPassword.errorMessageProperty().set("Password does not match");
+            } else {
+                efConfirmPassword.errorMessageProperty().set("");
+            }
+            updateButton();
+        });
+        efConfirmPassword.textProperty().addListener((ol, ov, nv) -> {
+            if(!efPassword.textProperty().get().equals(efConfirmPassword.textProperty().get())) {
+                efConfirmPassword.errorMessageProperty().set("Password does not match");
+            } else {
+                efConfirmPassword.errorMessageProperty().set("");
+            }
+            updateButton();
+        });
+        efPlatform.textProperty().addListener((ol, ov, nv) -> {
+            if(nv == null || nv.isBlank()) {
+                efPlatform.errorMessageProperty().set("Platform should not be empty");
+            }
+            updateButton();
+        });
+        updateButton();
+    }
+
+    private void updateButton() {
+        btnSave.setDisable(
+            !efName.errorMessageProperty().get().isEmpty() ||
+            !efPassword.errorMessageProperty().get().isEmpty() ||
+            !efConfirmPassword.errorMessageProperty().get().isEmpty() ||
+            !efPlatform.errorMessageProperty().get().isEmpty()
+        );
+    }
+
+    public void clearData() {
+        efName.textProperty().set("");
+        efPassword.textProperty().set("");
+        efConfirmPassword.textProperty().set("");
+        efPlatform.textProperty().set("");
+        efLink.textProperty().set("");
+        cbxLabel.getSelectionModel().select(DbConfig.getLabelService().getLabelEntityByName(LabelEntity.DEFAULT_LABEL_NAME));
     }
 
 }

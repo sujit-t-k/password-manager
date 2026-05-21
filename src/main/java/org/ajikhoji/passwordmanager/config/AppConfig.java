@@ -1,5 +1,6 @@
 package org.ajikhoji.passwordmanager.config;
 
+import javafx.application.HostServices;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
@@ -7,6 +8,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.ajikhoji.passwordmanager.repository.*;
+import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.service.*;
 import org.ajikhoji.passwordmanager.ui_components.AppFrame;
 
@@ -16,8 +18,10 @@ public class AppConfig {
     private static final double screenWidth, screenHeight, usableScreenWidth, usableScreenHeight;
     private static Stage primaryStage;
     private static AppFrame appFrame;
+    private static HostServices hostServices;
     private static final ObjectProperty<Pane> currDisplayPage = new SimpleObjectProperty<>(null);
     private static SideBarItem defaultSideMenuItem = SideBarItem.DASHBOARD;
+    private static EncryptionService encryptionService;
     private static final AppResources ar;
 
     static {
@@ -53,6 +57,10 @@ public class AppConfig {
         return usableScreenHeight;
     }
 
+    public static EncryptionService getEncryptionService() {
+        return encryptionService;
+    }
+
     public static AppFrame getAppFrame() {
         return appFrame;
     }
@@ -73,6 +81,14 @@ public class AppConfig {
         currDisplayPage.set(p);
     }
 
+    public static void setHostServices(final HostServices hs) {
+        hostServices = hs;
+    }
+
+    public static void openDocument(final String url) {
+        hostServices.showDocument(url);
+    }
+
     public static ObjectProperty<Pane> getCurrentDisplayPageProperty() {
         return currDisplayPage;
     }
@@ -83,6 +99,10 @@ public class AppConfig {
 
     public static void setDefaultSideMenuItem(SideBarItem defaultSideMenuItem) {
         AppConfig.defaultSideMenuItem = defaultSideMenuItem;
+    }
+
+    public static void setEncryptionService(final EncryptionService es) {
+        encryptionService = es;
     }
 
     public static Scene getScene() {

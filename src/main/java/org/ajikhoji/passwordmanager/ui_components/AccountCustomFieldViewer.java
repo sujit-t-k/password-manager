@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 public class AccountCustomFieldViewer extends TableView<AccountCustomFieldEntity> {
 
-    final ObservableList<AccountCustomFieldEntity> allFields = FXCollections.observableArrayList();
+    private final ObservableList<AccountCustomFieldEntity> allFields = FXCollections.observableArrayList();
 
     public AccountCustomFieldViewer() {
         final AppResources ar = AppConfig.getAppResources();
@@ -56,8 +56,8 @@ public class AccountCustomFieldViewer extends TableView<AccountCustomFieldEntity
                 btnEdit.setStyle("-fx-padding: 3px;");
                 btnDelete.getStyleClass().add("btn-table-delete");
                 btnDelete.setStyle("-fx-padding: 3px;");
-                Tooltip.uninstall(btnEdit, new Tooltip("Modify / Edit"));
-                Tooltip.uninstall(btnDelete, new Tooltip("Delete"));
+                Tooltip.install(btnEdit, new Tooltip("Modify / Edit"));
+                Tooltip.install(btnDelete, new Tooltip("Delete"));
                 hbxControls.setAlignment(Pos.CENTER);
             }
 
@@ -99,6 +99,7 @@ public class AccountCustomFieldViewer extends TableView<AccountCustomFieldEntity
             Utility.autoFitColumnWidth(tcFieldName);
             Utility.autoFitColumnWidth(tcFieldValue);
         });
+
         adjustTableViewHeight();
         Utility.autoFitColumnWidth(tcFieldName);
         Utility.autoFitColumnWidth(tcFieldValue);

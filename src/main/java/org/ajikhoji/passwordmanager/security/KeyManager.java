@@ -6,10 +6,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class KeyManager {
 
-    public static SecretKeySpec generateKey(String masterPassword) {
+    public static SecretKeySpec generateKey(final String masterPassword, final byte[] salt) {
         try {
-            byte[] salt = "some-fixed-salt".getBytes(); // improve later
-
             final PBEKeySpec spec = new PBEKeySpec(
                     masterPassword.toCharArray(),
                     salt,
@@ -25,4 +23,5 @@ public class KeyManager {
             throw new RuntimeException("Key generation failed", e);
         }
     }
+
 }

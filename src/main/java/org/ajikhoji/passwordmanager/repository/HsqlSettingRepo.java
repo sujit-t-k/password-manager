@@ -40,11 +40,10 @@ public class HsqlSettingRepo implements SettingRepo {
         try {
             final String queryRetrieve = "SELECT setting_value FROM AppSettings WHERE setting_key = 'HASHED_PASSWORD'";
             final PreparedStatement ps = conn.prepareStatement(queryRetrieve);
-            ps.executeQuery();
 
-            final ResultSet rs = ps.getResultSet();
+            final ResultSet rs = ps.executeQuery();
             if(rs.next()) {
-                return rs.getString("value");
+                return rs.getString("setting_value");
             } else {
                 throw new DatabaseOperationFailureException("No record with name HASHED_PASSWORD found in AppSettings relation");
             }
@@ -81,11 +80,10 @@ public class HsqlSettingRepo implements SettingRepo {
         try {
             final String queryRetrieve = "SELECT setting_value FROM AppSettings WHERE setting_key = 'SALTING'";
             final PreparedStatement ps = conn.prepareStatement(queryRetrieve);
-            ps.executeQuery();
 
-            final ResultSet rs = ps.getResultSet();
+            final ResultSet rs = ps.executeQuery();
             if(rs.next()) {
-                return rs.getString("value");
+                return rs.getString("setting_value");
             } else {
                 throw new DatabaseOperationFailureException("No record with name SALTING found in AppSettings relation");
             }
@@ -121,11 +119,10 @@ public class HsqlSettingRepo implements SettingRepo {
         try {
             final String queryRetrieve = "SELECT setting_value FROM AppSettings WHERE setting_key = 'USER_NAME'";
             final PreparedStatement ps = conn.prepareStatement(queryRetrieve);
-            ps.executeQuery();
 
-            final ResultSet rs = ps.getResultSet();
+            final ResultSet rs = ps.executeQuery();
             if(rs.next()) {
-                return rs.getString("value");
+                return rs.getString("setting_value");
             } else {
                 throw new DatabaseOperationFailureException("No record with name USER_NAME found in AppSettings relation");
             }
@@ -162,11 +159,10 @@ public class HsqlSettingRepo implements SettingRepo {
         try {
             final String queryRetrieve = "SELECT setting_value FROM AppSettings WHERE setting_key = 'HINT'";
             final PreparedStatement ps = conn.prepareStatement(queryRetrieve);
-            ps.executeQuery();
 
-            final ResultSet rs = ps.getResultSet();
+            final ResultSet rs = ps.executeQuery();
             if(rs.next()) {
-                return rs.getString("value");
+                return rs.getString("setting_value");
             } else {
                 throw new DatabaseOperationFailureException("No record with name HINT found in AppSettings relation");
             }
