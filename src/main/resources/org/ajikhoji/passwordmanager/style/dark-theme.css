@@ -638,6 +638,80 @@
     -fx-background-color: #262626;
 }
 
+/* =========================================================
+   ACCORDION ROOT
+   ========================================================= */
+
+.accordion {
+    -fx-background-color: #1e1e1e;
+}
+
+
+/* =========================================================
+   TITLED PANE
+   ========================================================= */
+
+.titled-pane {
+    -fx-background-color: #1e1e1e;
+    -fx-text-fill: white;
+}
+
+
+/* Remove default outer glow/border */
+.titled-pane > .title {
+    -fx-background-color: #2b2b2b;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-padding: 4 8 4 8;
+
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+
+/* Hover effect */
+.titled-pane > .title:hover {
+    -fx-background-color: #353535;
+}
+
+
+/* Expanded pane header */
+.titled-pane:expanded > .title {
+    -fx-background-color: #3a3a3a;
+}
+
+
+/* Header text */
+.titled-pane > .title > .text {
+    -fx-fill: #f5f5f5;
+}
+
+
+/* =========================================================
+   CONTENT AREA
+   ========================================================= */
+
+.titled-pane > .content {
+    -fx-background-color: #252525;
+    -fx-border-color: transparent;
+    -fx-padding: 8;
+}
+
+
+/* =========================================================
+   ARROW BUTTON
+   ========================================================= */
+
+.titled-pane > .title > .arrow-button {
+    -fx-background-color: transparent;
+}
+
+
+/* Arrow */
+.titled-pane > .title > .arrow-button .arrow {
+    -fx-background-color: #d0d0d0;
+}
+
 //context-menu
 .context-menu {
     -fx-background-color: #2b2b2b;

@@ -3,7 +3,6 @@ package org.ajikhoji.passwordmanager.ui_components;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -24,15 +23,20 @@ import org.ajikhoji.passwordmanager.view.DetailedAccountInfoScreen;
 import org.ajikhoji.passwordmanager.view.EditAccountScreen;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 import static org.ajikhoji.passwordmanager.util.Utility.copyText;
 
 public class AccountCredentialViewer extends TableView<AccountEntity> {
 
+    private final List<AccountEntity> allAccounts;
+
     public AccountCredentialViewer() {
         final AccountService accountService = DbConfig.getAccountService();
-        final ObservableList<AccountEntity> allAccountInfo = FXCollections.observableArrayList(accountService.getAllAccountCredential());
-        setItems(allAccountInfo);
+        allAccounts = accountService.getAllAccountCredential();
+        setItems(FXCollections.observableArrayList(allAccounts));
         setEditable(false);
+        setPlaceholder(new Label("No records available"));
 
         final TableColumn<AccountEntity, String> tcAccName = Utility.getCopyableTableColumn("Account ID/Name", "accName");
         final TableColumn<AccountEntity, String> tcAccPass = new TableColumn<>("Password");
@@ -180,6 +184,8 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                 if(!empty) {
                     setText(Utility.getFormatedDateTimeString(createdDate));
                     setAlignment(Pos.CENTER);
+                } else {
+                    setText(null);
                 }
             }
         });
@@ -192,6 +198,8 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                 if(!empty) {
                     setText(labelService.getLabelEntityById(labelId).getLabelName());
                     setAlignment(Pos.CENTER);
+                } else {
+                    setText(null);
                 }
             }
         });
@@ -246,7 +254,7 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                                 (updatedAccountEntity, updatedCustomFields) -> {
                                     accountService.updateAccountCredential(data, updatedAccountEntity);
                                     customFieldService.commit(data.getAccId(), updatedCustomFields);
-                                    allAccountInfo.set(idx, updatedAccountEntity);
+                                    getItems().set(idx, updatedAccountEntity);
                                     AccountCredentialViewer.this.refresh();
                                 }
                             );
@@ -255,7 +263,7 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                             final AccountService accountService = DbConfig.getAccountService();
                             try {
                                 accountService.deleteAccountCredential(data);
-                                allAccountInfo.remove(data);
+                                getItems().remove(data);
                                 AccountCredentialViewer.this.refresh();
                             } catch (final Exception e) {
                                 Utility.showErrorAlert("Delete operation failed", "Something went wrong.");
@@ -269,6 +277,10 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                 }
             }
         });
+    }
+
+    public List<AccountEntity> getAllAccounts() {
+        return allAccounts;
     }
 
 }

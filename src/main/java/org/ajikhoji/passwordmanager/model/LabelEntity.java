@@ -4,6 +4,7 @@ public class LabelEntity {
 
     public static final long UNDEFINED_LABEL_ID = -5;
     public static final String DEFAULT_LABEL_NAME = "Unlabeled";
+    public static final LabelEntity NULL_LABEL = new LabelEntity(UNDEFINED_LABEL_ID, "None");
     private long labelId = UNDEFINED_LABEL_ID;
     private String labelName;
 
