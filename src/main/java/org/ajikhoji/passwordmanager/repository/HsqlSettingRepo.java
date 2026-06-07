@@ -1,9 +1,16 @@
 package org.ajikhoji.passwordmanager.repository;
 
+import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.exception.DatabaseOperationFailureException;
+import org.ajikhoji.passwordmanager.model.AccountCustomFieldEntity;
+import org.ajikhoji.passwordmanager.model.AccountEntity;
+import org.ajikhoji.passwordmanager.security.EncryptionService;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HsqlSettingRepo implements SettingRepo {
 
@@ -24,6 +31,7 @@ public class HsqlSettingRepo implements SettingRepo {
             } catch (Exception e) {
                 throw new DatabaseOperationFailureException(e.getMessage());
             }
+            return;
         }
         try {
             final String strQuery = "UPDATE AppSettings SET setting_value = ? WHERE setting_key = 'HASHED_PASSWORD'";
@@ -103,6 +111,7 @@ public class HsqlSettingRepo implements SettingRepo {
             } catch (Exception e) {
                 throw new DatabaseOperationFailureException(e.getMessage());
             }
+            return;
         }
         try {
             final String strQuery = "UPDATE AppSettings SET setting_value = ? WHERE setting_key = 'USER_NAME'";
@@ -188,6 +197,94 @@ public class HsqlSettingRepo implements SettingRepo {
     public boolean isSetupDone() {
         return containsRecord("HASHED_PASSWORD") && containsRecord("SALTING")
                 && containsRecord("USER_NAME") && containsRecord("HINT");
+    }
+
+    @Override
+    public void changePassword(final EncryptionService oldService, final EncryptionService newService, final String hash, final String salt) {
+        try {
+            final boolean isAutoCommitEnabled = conn.getAutoCommit();
+            try {
+                conn.setAutoCommit(false);
+
+                int batchSize = 500;
+                int count = 0;
+
+                //retrieve and update password of all account credential
+                final List<AccountEntity> allAccounts = DbConfig.getAccountService().getAllAccountCredential();
+                final String queryUpdateAccountPassword = """
+                    UPDATE Accounts
+                    SET password = ?
+                    WHERE account_id = ?;
+                """;
+                final PreparedStatement psAccountPassword = conn.prepareStatement(queryUpdateAccountPassword);
+                for (final AccountEntity e : allAccounts) {
+                    final String plainPassword = oldService.decrypt(e.getAccPassword());
+                    final String newEncryptedPassword = newService.encrypt(plainPassword);
+
+                    psAccountPassword.setString(1, newEncryptedPassword);
+                    psAccountPassword.setLong(2, e.getAccId());
+                    psAccountPassword.addBatch();
+
+                    if (++count % batchSize == 0) {
+                        psAccountPassword.executeBatch();
+                    }
+                }
+                psAccountPassword.executeBatch();
+
+                //retrieve and update all account custom field values
+                final List<AccountCustomFieldEntity> allCustomFieldEntities = new ArrayList<>();
+                final String queryRetrieveAllAccountInfo = "SELECT * FROM AccountCustomFields;";
+                final PreparedStatement psRetrieve = conn.prepareStatement(queryRetrieveAllAccountInfo);
+
+                final ResultSet rs = psRetrieve.executeQuery();
+                while (rs.next()) {
+                    final long accId = rs.getLong("account_id");
+                    final String fieldName = rs.getString("field_key");
+                    final String fieldValue = rs.getString("field_value");
+                    allCustomFieldEntities.add(new AccountCustomFieldEntity(accId, fieldName, fieldValue));
+                }
+
+                final String queryUpdateAccountCustomFields = """
+                    UPDATE AccountCustomFields
+                    SET field_value = ?
+                    WHERE account_id = ? AND field_key = ?
+                """;
+                final PreparedStatement psUpdateAccountCustomFields = conn.prepareStatement(queryUpdateAccountCustomFields);
+
+                count = 0;
+                for (AccountCustomFieldEntity e : allCustomFieldEntities) {
+                    final String plainFieldValue = oldService.decrypt(e.getFieldValue());
+                    final String newEncryptedFieldValue = newService.encrypt(plainFieldValue);
+
+                    psUpdateAccountCustomFields.setString(1, newEncryptedFieldValue);
+                    psUpdateAccountCustomFields.setLong(2, e.getAccId());
+                    psUpdateAccountCustomFields.setString(3, e.getFieldName());
+                    psUpdateAccountCustomFields.addBatch();
+
+                    if (++count % batchSize == 0) {
+                        psUpdateAccountCustomFields.executeBatch();
+                    }
+                }
+                psUpdateAccountCustomFields.executeBatch();
+
+                //update salt and hash
+                updateHash(hash);
+                updateSalt(salt);
+
+                conn.commit();
+            } catch (final Exception e) {
+                try {
+                    conn.rollback();
+                } catch (final Exception ex) {
+                    throw new DatabaseOperationFailureException("Failed to change master password");
+                }
+                throw new DatabaseOperationFailureException("Failed to change master password");
+            } finally {
+                conn.setAutoCommit(isAutoCommitEnabled);
+            }
+        } catch (final Exception e) {
+            throw new DatabaseOperationFailureException("Failed to change master password");
+        }
     }
 
 }

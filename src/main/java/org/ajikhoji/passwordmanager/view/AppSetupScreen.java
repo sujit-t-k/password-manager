@@ -8,7 +8,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import org.ajikhoji.passwordmanager.config.AppConfig;
+import org.ajikhoji.passwordmanager.exception.ValidationException;
 import org.ajikhoji.passwordmanager.util.Utility;
+import org.ajikhoji.passwordmanager.validator.AccountInfoValidator;
 
 import java.util.function.Consumer;
 
@@ -115,12 +117,10 @@ public class AppSetupScreen {
         });
         btnNext.setOnAction(e -> {
             final String pass = passwordField.textProperty().get();
-            if(pass.isBlank()) {
-                passwordField.errorMessageProperty().set("Password shall not be empty");
-                return;
-            }
-            if(pass.length() < 6) {
-                passwordField.errorMessageProperty().set("Password should be at least 6 characters long");
+            try {
+                AccountInfoValidator.validateUnencryptedMasterPassword(pass);
+            } catch (final ValidationException ve) {
+                passwordField.errorMessageProperty().set(ve.getMessage());
                 return;
             }
             final String hintString = hintField.textProperty().get();

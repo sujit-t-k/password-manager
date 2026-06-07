@@ -37,6 +37,9 @@ public class AppMainScreen {
                 case VIEW_ALL -> {
                     AppConfig.setCurrentDisplayPage(new ViewAccountCredentialScreen());
                 }
+                case SETTING -> {
+                    AppConfig.setCurrentDisplayPage(new SettingsScreen());
+                }
             }
         });
     }

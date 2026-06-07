@@ -1,6 +1,8 @@
 package org.ajikhoji.passwordmanager.service;
 
-public interface SettingService {
+import org.ajikhoji.passwordmanager.repository.PasswordChangeable;
+
+public interface SettingService extends PasswordChangeable {
 
     void setHash(String hashedString);
     String getHash();

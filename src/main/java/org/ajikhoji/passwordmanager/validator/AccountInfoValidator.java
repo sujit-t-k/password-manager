@@ -13,7 +13,7 @@ public class AccountInfoValidator {
         if(accountName == null || accountName.isBlank()) {
             throw new ValidationException("Account name cannot be blank");
         }
-        if(accountName.chars().filter(c -> c != ' ').reduce(0, Integer::sum) < 5) {
+        if(accountName.chars().filter(c -> c != ' ').count() < 5) {
             throw new ValidationException("Account name should consist minimum of 5 non-whitespace characters");
         }
     }
@@ -26,8 +26,17 @@ public class AccountInfoValidator {
         if(password == null || password.isBlank()) {
             throw new ValidationException("Password cannot be blank");
         }
-        if(password.chars().filter(c -> c != ' ').reduce(0, Integer::sum) < 5) {
+        if(password.chars().filter(c -> c != ' ').count() < 5) {
             throw new ValidationException("Password should consist minimum of 5 non-whitespace characters");
+        }
+    }
+
+    public static void validateUnencryptedMasterPassword(final String password) {
+        if(password == null || password.isBlank()) {
+            throw new ValidationException("Password cannot be blank");
+        }
+        if(password.chars().filter(c -> c != ' ').count() < 6) {
+            throw new ValidationException("Password should consist minimum of 6 non-whitespace characters");
         }
     }
 
@@ -41,7 +50,7 @@ public class AccountInfoValidator {
         if(platform == null || platform.isBlank()) {
             throw new ValidationException("Platform name cannot be blank");
         }
-        if(platform.chars().filter(c -> c != ' ').reduce(0, Integer::sum) < 5) {
+        if(platform.chars().filter(c -> c != ' ').count() < 5) {
             throw new ValidationException("Platform should consist minimum of 5 non-whitespace characters");
         }
     }

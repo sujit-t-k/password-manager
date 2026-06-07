@@ -1,6 +1,7 @@
 package org.ajikhoji.passwordmanager.repository;
 
 import org.ajikhoji.passwordmanager.exception.DatabaseOperationFailureException;
+import org.ajikhoji.passwordmanager.model.AccountCustomFieldEntity;
 import org.ajikhoji.passwordmanager.model.AccountEntity;
 import org.ajikhoji.passwordmanager.util.Utility;
 

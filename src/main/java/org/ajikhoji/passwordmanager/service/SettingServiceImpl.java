@@ -1,6 +1,7 @@
 package org.ajikhoji.passwordmanager.service;
 
 import org.ajikhoji.passwordmanager.repository.SettingRepo;
+import org.ajikhoji.passwordmanager.security.EncryptionService;
 
 public class SettingServiceImpl implements SettingService {
     private final SettingRepo repo;
@@ -53,4 +54,10 @@ public class SettingServiceImpl implements SettingService {
     public boolean isSetupDone() {
         return repo.isSetupDone();
     }
+
+    @Override
+    public void changePassword(final EncryptionService oldService, final EncryptionService newService, final String hash, final String salt) {
+        repo.changePassword(oldService, newService, hash, salt);
+    }
+
 }

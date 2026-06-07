@@ -1,6 +1,6 @@
 package org.ajikhoji.passwordmanager.repository;
 
-public interface SettingRepo {
+public interface SettingRepo extends PasswordChangeable {
 
     void updateHash(String hashedString);
     String getHashedValue();
