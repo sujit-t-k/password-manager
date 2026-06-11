@@ -1,6 +1,7 @@
 package org.ajikhoji.passwordmanager.repository;
 
-public interface SettingRepo extends PasswordChangeable, TableFieldsReorderable {
+public interface SettingRepo extends PasswordChangeable, TableFieldsPreferenceRememberable,
+        OpenLinkButtonActionCustomizable, DataErasable {
 
     void updateHash(String hashedString);
     String getHashedValue();

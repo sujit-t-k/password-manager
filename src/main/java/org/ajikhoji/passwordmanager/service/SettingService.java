@@ -1,9 +1,12 @@
 package org.ajikhoji.passwordmanager.service;
 
+import org.ajikhoji.passwordmanager.repository.DataErasable;
+import org.ajikhoji.passwordmanager.repository.OpenLinkButtonActionCustomizable;
 import org.ajikhoji.passwordmanager.repository.PasswordChangeable;
-import org.ajikhoji.passwordmanager.repository.TableFieldsReorderable;
+import org.ajikhoji.passwordmanager.repository.TableFieldsPreferenceRememberable;
 
-public interface SettingService extends PasswordChangeable, TableFieldsReorderable {
+public interface SettingService extends PasswordChangeable, TableFieldsPreferenceRememberable,
+        OpenLinkButtonActionCustomizable, DataErasable {
 
     void setHash(String hashedString);
     String getHash();

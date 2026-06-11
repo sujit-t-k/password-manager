@@ -1,11 +1,11 @@
 package org.ajikhoji.passwordmanager.view;
 
-import javafx.event.EventType;
 import javafx.geometry.HPos;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -19,7 +19,8 @@ import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.exception.DatabaseOperationFailureException;
 import org.ajikhoji.passwordmanager.exception.ValidationException;
-import org.ajikhoji.passwordmanager.repository.TableFieldsReorderable;
+import org.ajikhoji.passwordmanager.repository.OpenLinkButtonActionCustomizable;
+import org.ajikhoji.passwordmanager.repository.TableFieldsPreferenceRememberable;
 import org.ajikhoji.passwordmanager.security.AesEncryptionService;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.security.KeyManager;
@@ -47,8 +48,6 @@ public class SettingsScreen extends Pane {
         //general section where 'view all credential' page's view can be configured as per the user's preference
         final Label lblTitleGeneral = new Label("General");
         lblTitleGeneral.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-        lblTitleGeneral.setAlignment(Pos.CENTER);
-        lblTitleGeneral.setTextAlignment(TextAlignment.CENTER);
 
         final Label lblViewFields = new Label("Fields to appear in 'View all credentials' table");
         lblViewFields.setWrapText(true);
@@ -76,7 +75,37 @@ public class SettingsScreen extends Pane {
             }
         });
 
-        final VBox vbxGeneral = new VBox(12.0D, lblTitleGeneral, lblViewFields, fpViewFields, lblFieldOrder, new VBox(6.0D, rbDefault, rbCustom));
+        final Label lblLink = new Label("On clicking open link button of link field in 'View all credentials' table");
+        lblLink.setWrapText(true);
+        lblLink.setStyle("-fx-font-weight: bold; -fx-padding: 6px 0 8px 0;");
+        final RadioButton rbOpen = new RadioButton("Open the link in new tab of system's default browser");
+        rbOpen.setWrapText(true);
+        final RadioButton rbCopyAccId = new RadioButton("Open in browser and copy account id/name to clipboard");
+        rbCopyAccId.setWrapText(true);
+        final RadioButton rbCopyPass = new RadioButton("Open in browser and copy account password to clipboard");
+        rbCopyPass.setWrapText(true);
+        rbOpen.addEventFilter(MouseEvent.ANY, e -> {
+            if(rbOpen.isSelected()) {
+                e.consume();
+            }
+        });
+        rbCopyAccId.addEventFilter(MouseEvent.ANY, e -> {
+            if(rbCopyAccId.isSelected()) {
+                e.consume();
+            }
+        });
+        rbCopyPass.addEventFilter(MouseEvent.ANY, e -> {
+            if(rbCopyPass.isSelected()) {
+                e.consume();
+            }
+        });
+
+        final VBox vbxGeneral = new VBox(18.0D,
+            lblTitleGeneral,
+            new VBox(3.0D, lblViewFields, fpViewFields),
+            new VBox(3.0D, lblFieldOrder, new VBox(6.0D, rbDefault, rbCustom)),
+            new VBox(3.0D, lblLink, new VBox(6.0D, rbOpen, rbCopyAccId, rbCopyPass))
+        );
         
         //personal section where app password, hint and username can be changed
         final GridPane gpSecurity = new GridPane(8.0D, 16.0D);
@@ -107,8 +136,6 @@ public class SettingsScreen extends Pane {
 
         final Label lblTitleSecurity = new Label("Personal & Security");
         lblTitleSecurity.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-        lblTitleSecurity.setAlignment(Pos.CENTER);
-        lblTitleSecurity.setTextAlignment(TextAlignment.CENTER);
         gpSecurity.add(new HBox(lblTitleSecurity), 0, 0, 3, 1);
 
         final Label lblUsernameField = SettingInfoLabel.apply("Username");
@@ -126,7 +153,25 @@ public class SettingsScreen extends Pane {
         final Button btnPasswordEdit = EditButton.get();
         gpSecurity.addRow(gpSecurity.getRowCount(), lblPasswordField, lblPasswordValue, btnPasswordEdit);
 
-        vbxContent.getChildren().addAll(vbxGeneral, gpSecurity);
+        //data section
+        final GridPane gpData = new GridPane(8.0D, 16.0D);
+        gpData.setStyle("-fx-padding: 20px 0 0 0;");
+        final ColumnConstraints ccDataDescription = new ColumnConstraints();
+        ccDataDescription.setHalignment(HPos.LEFT);
+        gpData.getColumnConstraints().add(ccDataDescription);
+        final ColumnConstraints ccDataAction = new ColumnConstraints();
+        ccDataAction.setHalignment(HPos.LEFT);
+        gpData.getColumnConstraints().add(ccDataAction);
+
+        final Label lblData = new Label("Data");
+        lblData.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        gpData.add(new HBox(lblData), 0, 0, 2, 1);
+        final Button btnClearData = new Button("Clear data");
+        gpData.addRow(1, new Label("Deletes all stored account credential"), btnClearData);
+        final Button btnExport = new Button("Export as CSV");
+        gpData.addRow(2, new Label("Exports all stored credential within a single CSV file"), btnExport);
+
+        vbxContent.getChildren().addAll(vbxGeneral, gpSecurity, gpData);
         sp.setContent(vbxContent);
         getChildren().add(sp);
         sp.prefWidthProperty().bind(widthProperty());
@@ -140,8 +185,9 @@ public class SettingsScreen extends Pane {
         btnUsernameEdit.setOnAction(e -> editUsername(lblUsernameValue));
         btnPasswordEdit.setOnAction(e -> editPassword());
 
+        btnClearData.setOnAction(e -> showClearDataConfirmation());
+
         final long initialOrder = Math.abs(settingService.getTableFieldsOrder());
-        System.out.println(settingService.getTableFieldsOrder());
         for(int i = 0; i < fieldNames.length; ++i) {
             final int fieldMappingNumber = (i + 1) % 10;
             cbx[i] = new CheckBox(fieldNames[i]);
@@ -176,7 +222,7 @@ public class SettingsScreen extends Pane {
                     order = (order * 10) + fieldOrderMapping;
                 }
             }
-            return TableFieldsReorderable.getUpdatedFieldsCount(order, count);
+            return TableFieldsPreferenceRememberable.getUpdatedFieldsCount(order, count);
         };
 
         rbDefault.setOnAction(e -> {
@@ -194,6 +240,29 @@ public class SettingsScreen extends Pane {
         } else {
             rbCustom.setSelected(true);
         }
+
+        rbOpen.setOnAction(e -> {
+            rbOpen.setSelected(true);
+            rbCopyAccId.setSelected(false);
+            rbCopyPass.setSelected(false);
+            settingService.saveOpenLinkAction(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER);
+        });
+        rbCopyAccId.setOnAction(e -> {
+            rbOpen.setSelected(false);
+            rbCopyAccId.setSelected(true);
+            rbCopyPass.setSelected(false);
+            settingService.saveOpenLinkAction(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER_AND_COPY_ACC_ID);
+        });
+        rbCopyPass.setOnAction(e -> {
+            rbOpen.setSelected(false);
+            rbCopyAccId.setSelected(false);
+            rbCopyPass.setSelected(true);
+            settingService.saveOpenLinkAction(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER_AND_COPY_ACC_PASS);
+        });
+        final OpenLinkButtonActionCustomizable.LinkActionOption savedOption = settingService.getOpenLinkActionPreference();
+        rbOpen.setSelected(savedOption.equals(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER));
+        rbCopyAccId.setSelected(savedOption.equals(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER_AND_COPY_ACC_ID));
+        rbCopyPass.setSelected(savedOption.equals(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER_AND_COPY_ACC_PASS));
     }
 
     private boolean isPasswordCorrect(final String plainPassword) {
@@ -302,7 +371,7 @@ public class SettingsScreen extends Pane {
             final String oldPass = password.textProperty().get();
             final String pass = newPassword.textProperty().get();
             final String confirmPass = newPasswordConfirm.textProperty().get();
-            if(confirmPass == null || pass == null || !pass.equals(confirmPass)) {
+            if(pass == null || !pass.equals(confirmPass)) {
                 newPasswordConfirm.errorMessageProperty().set("New password does not match");
                 return;
             }
@@ -345,6 +414,70 @@ public class SettingsScreen extends Pane {
         });
         btnClose.setOnAction(e -> st.close());
         showSettingEditor(st, vbxFields, "Change app password");
+    }
+
+    private void showClearDataConfirmation() {
+        final Stage st = new Stage();
+        final VBox vbxFields = new VBox(16.0D);
+        vbxFields.setStyle("-fx-padding: 16px;");
+
+        if(DbConfig.getAccountService().getAllAccountCredential().isEmpty()) {
+            final Label lblPrompt = new Label("No data available for clearance");
+            lblPrompt.setStyle("-fx-font-size: 20px;");
+            vbxFields.getChildren().add(lblPrompt);
+
+            final Button btnOk = new Button("Close");
+            btnOk.setStyle("-fx-font-size: 16px;");
+            final HBox hbOk = new HBox(btnOk);
+            vbxFields.getChildren().add(hbOk);
+
+            btnOk.setOnAction(e -> st.close());
+            showSettingEditor(st, vbxFields, "Clear data");
+
+            return;
+        }
+
+        final Label lblPrompt = new Label("Deletes all account credentials and its associated custom field " +
+                "information stored in this app. Setting preferences will be retained.");
+        vbxFields.getChildren().add(lblPrompt);
+
+        final Utility.EntryField password = Utility.addLabeledTextField("Enter app password to proceed", 50, vbxFields);
+
+        final Image imgWarning = AppConfig.getAppResources().imgWarning;
+        final Label lblWarning = new Label("This action cannot be undone. Deleted data cannot be recovered.");
+        lblWarning.setStyle("-fx-text-fill: #FFB80F; -fx-font-size: 16px;");
+        lblWarning.setAlignment(Pos.CENTER);
+        lblWarning.setTextAlignment(TextAlignment.CENTER);
+        lblWarning.prefWidthProperty().bind(vbxFields.widthProperty());
+        final ImageView ivWarning = new ImageView(imgWarning);
+        ivWarning.setFitHeight(25.0D);
+        ivWarning.setPreserveRatio(true);
+        lblWarning.setGraphic(ivWarning);
+        vbxFields.getChildren().add(lblWarning);
+
+        final Button btnProceed = new Button("Clear data");
+        btnProceed.getStyleClass().add("btn-important-decision-warning");
+        btnProceed.setStyle("-fx-font-size: 16px;");
+        final HBox hbxControls = new HBox(btnProceed);
+        hbxControls.setAlignment(Pos.CENTER);
+        vbxFields.getChildren().add(hbxControls);
+
+        btnProceed.setOnAction(e -> {
+            if(isPasswordCorrect(password.textProperty().get())) {
+                try {
+                    DbConfig.getSettingService().clearAccountCredentialData();
+                    st.close();
+                    Utility.showInformationAlert("Operation Success", "Data cleared!!");
+                } catch (final Exception ex) {
+                    Utility.showErrorAlert("Operation Failed", "Internal Error occurred");
+                }
+            } else {
+                password.errorMessageProperty().set("Incorrect password entered");
+                Utility.showErrorAlert("Operation Failed", "Incorrect password entered");
+            }
+        });
+
+        showSettingEditor(st, vbxFields, "Clear data");
     }
 
     private void showSettingEditor(final Stage st, final Pane paneBase, final String windowTitle) {

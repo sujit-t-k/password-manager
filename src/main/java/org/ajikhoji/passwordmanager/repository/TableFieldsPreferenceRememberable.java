@@ -1,6 +1,6 @@
 package org.ajikhoji.passwordmanager.repository;
 
-public interface TableFieldsReorderable {
+public interface TableFieldsPreferenceRememberable {
 
     long DEFAULT_TABLE_FIELDS_ORDER = 60000124530L;
 

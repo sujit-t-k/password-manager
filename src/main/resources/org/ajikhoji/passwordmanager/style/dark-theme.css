@@ -642,6 +642,16 @@
     -fx-background-color : #49FF24;
 }
 
+.btn-important-decision-warning {
+    -fx-background-color : #c40834;
+    -fx-text-fill: #200000;
+}
+.btn-important-decision-warning:hover {
+    -fx-background-color : #8d0634;
+    -fx-text-fill: #2b0000;
+    -fx-effect: dropshadow(gaussian, rgba(171, 10, 10, 0.85), 8, 0.25, 2, 2);
+}
+
 .lbl-status {
     -fx-background-color : #131313;
     -fx-text-fill : #feeced;

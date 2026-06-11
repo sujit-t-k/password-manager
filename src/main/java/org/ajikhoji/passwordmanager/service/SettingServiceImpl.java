@@ -1,10 +1,11 @@
 package org.ajikhoji.passwordmanager.service;
 
 import org.ajikhoji.passwordmanager.repository.SettingRepo;
-import org.ajikhoji.passwordmanager.repository.TableFieldsReorderable;
+import org.ajikhoji.passwordmanager.repository.TableFieldsPreferenceRememberable;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 
 public class SettingServiceImpl implements SettingService {
+
     private final SettingRepo repo;
 
     public SettingServiceImpl(final SettingRepo repo) {
@@ -66,7 +67,7 @@ public class SettingServiceImpl implements SettingService {
      * If not, the default table field order will be returned.
      */
     private long getCorrectedOrderView(final long order) {
-        if(order == TableFieldsReorderable.DEFAULT_TABLE_FIELDS_ORDER) {
+        if(order == TableFieldsPreferenceRememberable.DEFAULT_TABLE_FIELDS_ORDER) {
             return order;
         }
         if(order < 0) {//means that default system order option is selected
@@ -74,7 +75,7 @@ public class SettingServiceImpl implements SettingService {
         }
         boolean corrupted = order <= 0;
         if(!corrupted) {
-            final int totalFieldsCount = TableFieldsReorderable.getFieldsCount(order);
+            final int totalFieldsCount = TableFieldsPreferenceRememberable.getFieldsCount(order);
             if(totalFieldsCount < 3 || totalFieldsCount > 10) {
                 corrupted = true;
             } else {
@@ -92,7 +93,7 @@ public class SettingServiceImpl implements SettingService {
                 }
             }
         }
-        return corrupted ? TableFieldsReorderable.DEFAULT_TABLE_FIELDS_ORDER : order;
+        return corrupted ? TableFieldsPreferenceRememberable.DEFAULT_TABLE_FIELDS_ORDER : order;
     }
 
     @Override
@@ -107,9 +108,27 @@ public class SettingServiceImpl implements SettingService {
             final long order = repo.getTableFieldsOrder();
             return getCorrectedOrderView(order);
         } catch (final Exception e) {
-            e.printStackTrace();
-            return TableFieldsReorderable.DEFAULT_TABLE_FIELDS_ORDER;
+            return TableFieldsPreferenceRememberable.DEFAULT_TABLE_FIELDS_ORDER;
         }
+    }
+
+    @Override
+    public void saveOpenLinkAction(final LinkActionOption option) {
+        repo.saveOpenLinkAction(option);
+    }
+
+    @Override
+    public LinkActionOption getOpenLinkActionPreference() {
+        try {
+            return repo.getOpenLinkActionPreference();
+        } catch (final Exception e) {
+            return LinkActionOption.OPEN_IN_BROWSER;
+        }
+    }
+
+    @Override
+    public void clearAccountCredentialData() {
+        repo.clearAccountCredentialData();
     }
 
 }

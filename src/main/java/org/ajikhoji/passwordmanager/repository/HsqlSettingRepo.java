@@ -5,6 +5,7 @@ import org.ajikhoji.passwordmanager.exception.DatabaseOperationFailureException;
 import org.ajikhoji.passwordmanager.model.AccountCustomFieldEntity;
 import org.ajikhoji.passwordmanager.model.AccountEntity;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
+import org.ajikhoji.passwordmanager.util.Utility;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -324,6 +325,57 @@ public class HsqlSettingRepo implements SettingRepo {
                 throw new DatabaseOperationFailureException("No record with name TABLE_VIEW_FIELD_ORDER_PREFERENCE found in AppSettings relation");
             }
         } catch (Exception e) {
+            throw new DatabaseOperationFailureException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void saveOpenLinkAction(final LinkActionOption option) {
+        if(!containsRecord("OPEN_LINK_ACTION")) {
+            try {
+                final String strQuery = "INSERT INTO AppSettings (setting_key, setting_value) VALUES ('OPEN_LINK_ACTION', ?)";
+                final PreparedStatement psInsert = conn.prepareStatement(strQuery);
+                psInsert.setString(1, option.name());
+                psInsert.executeUpdate();
+            } catch (Exception e) {
+                throw new DatabaseOperationFailureException(e.getMessage());
+            }
+            return;
+        }
+        try {
+            final String strQuery = "UPDATE AppSettings SET setting_value = ? WHERE setting_key = 'OPEN_LINK_ACTION'";
+            final PreparedStatement psInsert = conn.prepareStatement(strQuery);
+            psInsert.setString(1, option.name());
+            psInsert.executeUpdate();
+        } catch (Exception e) {
+            throw new DatabaseOperationFailureException(e.getMessage());
+        }
+    }
+
+    @Override
+    public LinkActionOption getOpenLinkActionPreference() {
+        try {
+            final String queryRetrieve = "SELECT setting_value FROM AppSettings WHERE setting_key = 'OPEN_LINK_ACTION'";
+            final PreparedStatement ps = conn.prepareStatement(queryRetrieve);
+
+            final ResultSet rs = ps.executeQuery();
+            if(rs.next()) {
+                return OpenLinkButtonActionCustomizable.LinkActionOption.valueOf(rs.getString("setting_value"));
+            } else {
+                throw new DatabaseOperationFailureException("No record with name OPEN_LINK_ACTION found in AppSettings relation");
+            }
+        } catch (Exception e) {
+            throw new DatabaseOperationFailureException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void clearAccountCredentialData() {
+        try {
+            final String strTruncateAccountInfo = "DELETE FROM Accounts;";
+            final PreparedStatement ps = conn.prepareStatement(strTruncateAccountInfo);
+            ps.execute();
+        } catch (final Exception e) {
             throw new DatabaseOperationFailureException(e.getMessage());
         }
     }

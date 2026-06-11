@@ -16,7 +16,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
-import org.ajikhoji.passwordmanager.repository.TableFieldsReorderable;
+import org.ajikhoji.passwordmanager.repository.TableFieldsPreferenceRememberable;
 import org.ajikhoji.passwordmanager.ui_components.ToggleableTextField;
 
 import java.sql.Timestamp;
@@ -221,7 +221,7 @@ public class Utility {
     }
 
     public static boolean isFieldPresent(final int fieldNumber, long order) {
-        int fieldsCount = TableFieldsReorderable.getFieldsCount(order);
+        int fieldsCount = TableFieldsPreferenceRememberable.getFieldsCount(order);
         while(fieldsCount-- > 0) {
             if(order % 10 == fieldNumber) {
                 return true;
@@ -232,13 +232,13 @@ public class Utility {
     }
 
     public static long addField(final int fieldNumber, final long order) {
-        final int fieldsCount = TableFieldsReorderable.getFieldsCount(order);
+        final int fieldsCount = TableFieldsPreferenceRememberable.getFieldsCount(order);
         final long includedFieldOrder = order * 10 + fieldNumber;
-        return TableFieldsReorderable.getUpdatedFieldsCount(includedFieldOrder, fieldsCount + 1);
+        return TableFieldsPreferenceRememberable.getUpdatedFieldsCount(includedFieldOrder, fieldsCount + 1);
     }
 
     public static long removeField(final int fieldNumber, long order) {
-        int fieldsCount = TableFieldsReorderable.getFieldsCount(order);
+        int fieldsCount = TableFieldsPreferenceRememberable.getFieldsCount(order);
 
         long newOrderReversed = 0;
         int retainedCount = 0;
@@ -251,7 +251,7 @@ public class Utility {
             order /= 10;
         }
         final long newOrder = reverse(newOrderReversed);
-        return TableFieldsReorderable.getUpdatedFieldsCount(newOrder, retainedCount);
+        return TableFieldsPreferenceRememberable.getUpdatedFieldsCount(newOrder, retainedCount);
     }
 
     public static long reverse(long num) {

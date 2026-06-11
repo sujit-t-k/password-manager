@@ -15,11 +15,13 @@ import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.model.AccountEntity;
-import org.ajikhoji.passwordmanager.repository.TableFieldsReorderable;
+import org.ajikhoji.passwordmanager.repository.OpenLinkButtonActionCustomizable;
+import org.ajikhoji.passwordmanager.repository.TableFieldsPreferenceRememberable;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.service.AccountCustomFieldService;
 import org.ajikhoji.passwordmanager.service.AccountService;
 import org.ajikhoji.passwordmanager.service.LabelService;
+import org.ajikhoji.passwordmanager.service.SettingService;
 import org.ajikhoji.passwordmanager.util.Utility;
 import org.ajikhoji.passwordmanager.view.DetailedAccountInfoScreen;
 import org.ajikhoji.passwordmanager.view.EditAccountScreen;
@@ -72,7 +74,8 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
         final TableColumn<AccountEntity, ?>[] allFields = new TableColumn[] {tcControls, tcAccName,
                 tcAccPass, tcPlatform, tcLabel, tcLink, tcCreated, tcLastUsed, tcRecentUpdated, tcUsageCount};
 
-        long fieldOrder = DbConfig.getSettingService().getTableFieldsOrder();
+        final SettingService settingService = DbConfig.getSettingService();
+        long fieldOrder = settingService.getTableFieldsOrder();
         boolean disableReordering = false;
         if(fieldOrder < 0) {
             fieldOrder *= -1;
@@ -85,8 +88,7 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
             }
         }
 
-
-        int fieldsCount = TableFieldsReorderable.getFieldsCount(fieldOrder);
+        int fieldsCount = TableFieldsPreferenceRememberable.getFieldsCount(fieldOrder);
         long order = Utility.reverse(Utility.getFieldOrderWithoutCount(fieldOrder));
         while (fieldsCount-- > 0) {
             final int fieldMappingId = (int) (order % 10);
@@ -140,6 +142,17 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                             imgViewLink.setImage(ar.imgLinkActivated);
                             btnLink.setGraphic(imgViewLink);
                             this.opened = true;
+
+                            final AccountEntity currEntity = getItems().get(getIndex());
+                            if(currEntity != null) {
+                                final OpenLinkButtonActionCustomizable.LinkActionOption preference = settingService.getOpenLinkActionPreference();
+                                if (preference.equals(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER_AND_COPY_ACC_ID)) {
+                                    copyText(currEntity.getAccName());
+                                } else if (preference.equals(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER_AND_COPY_ACC_PASS)) {
+                                    copyText(AppConfig.getEncryptionService().decrypt(currEntity.getAccPassword()));
+                                }
+                            }
+
                             new Timeline(new KeyFrame(Duration.millis(1800.0D), eh -> {
                                 imgViewLink.setImage(ar.imgLinkOpen);
                                 btnLink.setGraphic(imgViewLink);
@@ -343,8 +356,8 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
             for (final TableColumn<AccountEntity, ?> field : AccountCredentialViewer.this.getColumns()) {
                 newOrder = (newOrder * 10) + Long.parseLong(field.getId());
             }
-            final long orderWithCount = TableFieldsReorderable.getUpdatedFieldsCount(newOrder, AccountCredentialViewer.this.getColumns().size());
-            DbConfig.getSettingService().saveTableFieldsOrderPreference(orderWithCount);
+            final long orderWithCount = TableFieldsPreferenceRememberable.getUpdatedFieldsCount(newOrder, AccountCredentialViewer.this.getColumns().size());
+            settingService.saveTableFieldsOrderPreference(orderWithCount);
         });
     }
 
