@@ -287,4 +287,45 @@ public class HsqlSettingRepo implements SettingRepo {
         }
     }
 
+    @Override
+    public void saveTableFieldsOrderPreference(long preferenceOrder) {
+        if(!containsRecord("TABLE_VIEW_FIELD_ORDER_PREFERENCE")) {
+            try {
+                final String strQuery = "INSERT INTO AppSettings (setting_key, setting_value) VALUES ('TABLE_VIEW_FIELD_ORDER_PREFERENCE', ?)";
+                final PreparedStatement psInsert = conn.prepareStatement(strQuery);
+                psInsert.setString(1, String.valueOf(preferenceOrder));
+                psInsert.executeUpdate();
+            } catch (Exception e) {
+                throw new DatabaseOperationFailureException(e.getMessage());
+            }
+            return;
+        }
+        try {
+            final String strQuery = "UPDATE AppSettings SET setting_value = ? WHERE setting_key = 'TABLE_VIEW_FIELD_ORDER_PREFERENCE'";
+            final PreparedStatement psInsert = conn.prepareStatement(strQuery);
+            psInsert.setString(1, String.valueOf(preferenceOrder));
+            psInsert.executeUpdate();
+        } catch (Exception e) {
+            throw new DatabaseOperationFailureException(e.getMessage());
+        }
+    }
+
+    @Override
+    public long getTableFieldsOrder() {
+        try {
+            final String queryRetrieve = "SELECT setting_value FROM AppSettings WHERE setting_key = 'TABLE_VIEW_FIELD_ORDER_PREFERENCE'";
+            final PreparedStatement ps = conn.prepareStatement(queryRetrieve);
+
+            final ResultSet rs = ps.executeQuery();
+            if(rs.next()) {
+                final String preferenceValue = rs.getString("setting_value");
+                return Long.parseLong(preferenceValue);
+            } else {
+                throw new DatabaseOperationFailureException("No record with name TABLE_VIEW_FIELD_ORDER_PREFERENCE found in AppSettings relation");
+            }
+        } catch (Exception e) {
+            throw new DatabaseOperationFailureException(e.getMessage());
+        }
+    }
+
 }

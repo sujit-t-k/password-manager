@@ -1,8 +1,9 @@
 package org.ajikhoji.passwordmanager.service;
 
 import org.ajikhoji.passwordmanager.repository.PasswordChangeable;
+import org.ajikhoji.passwordmanager.repository.TableFieldsReorderable;
 
-public interface SettingService extends PasswordChangeable {
+public interface SettingService extends PasswordChangeable, TableFieldsReorderable {
 
     void setHash(String hashedString);
     String getHash();

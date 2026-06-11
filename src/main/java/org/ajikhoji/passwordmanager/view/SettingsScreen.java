@@ -1,22 +1,25 @@
 package org.ajikhoji.passwordmanager.view;
 
+import javafx.event.EventType;
 import javafx.geometry.HPos;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
 import org.ajikhoji.passwordmanager.Launcher;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.exception.DatabaseOperationFailureException;
 import org.ajikhoji.passwordmanager.exception.ValidationException;
+import org.ajikhoji.passwordmanager.repository.TableFieldsReorderable;
 import org.ajikhoji.passwordmanager.security.AesEncryptionService;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.security.KeyManager;
@@ -28,7 +31,6 @@ import org.ajikhoji.passwordmanager.validator.AccountInfoValidator;
 
 import javax.crypto.SecretKey;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -37,30 +39,57 @@ public class SettingsScreen extends Pane {
     public SettingsScreen() {
         final ScrollPane sp = new ScrollPane();
         sp.getStyleClass().add("info-scroll");
+        sp.setFitToWidth(true);
 
-        GridPane gp = new GridPane(10.0D, 20.0D);
-        gp.setStyle("-fx-padding: 20px;");
-        ColumnConstraints ccField = new ColumnConstraints();
+        final VBox vbxContent = new VBox();
+        vbxContent.setStyle("-fx-padding: 20px;");
+
+        //general section where 'view all credential' page's view can be configured as per the user's preference
+        final Label lblTitleGeneral = new Label("General");
+        lblTitleGeneral.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        lblTitleGeneral.setAlignment(Pos.CENTER);
+        lblTitleGeneral.setTextAlignment(TextAlignment.CENTER);
+
+        final Label lblViewFields = new Label("Fields to appear in 'View all credentials' table");
+        lblViewFields.setWrapText(true);
+        lblViewFields.setStyle("-fx-font-weight: bold; -fx-padding: 6px 0 8px 0;");
+        final FlowPane fpViewFields = new FlowPane(Orientation.HORIZONTAL, 12.0D, 6.0D);
+        final String[] fieldNames = new String[]{"Account ID/Name", "Password", "Platform", "Label", "Link",
+                "Added date", "Last used date", "Recent updated date", "Usage count", "Actions"};
+        final CheckBox[] cbx = new CheckBox[fieldNames.length];
+
+        final Label lblFieldOrder = new Label("Order of fields in 'View all credentials' table");
+        lblFieldOrder.setWrapText(true);
+        lblFieldOrder.setStyle("-fx-font-weight: bold; -fx-padding: 6px 0 8px 0;");
+        final RadioButton rbCustom = new RadioButton("Custom field order (double click on a field header and then drag and drop to re-arrange)");
+        rbCustom.setWrapText(true);
+        final RadioButton rbDefault = new RadioButton("App default field order (field re-arrangement will be disabled)");
+        rbDefault.setWrapText(true);
+        rbDefault.addEventFilter(MouseEvent.ANY, e -> {
+            if(rbDefault.isSelected()) {
+                e.consume();
+            }
+        });
+        rbCustom.addEventFilter(MouseEvent.ANY, e -> {
+            if(rbCustom.isSelected()) {
+                e.consume();
+            }
+        });
+
+        final VBox vbxGeneral = new VBox(12.0D, lblTitleGeneral, lblViewFields, fpViewFields, lblFieldOrder, new VBox(6.0D, rbDefault, rbCustom));
+        
+        //personal section where app password, hint and username can be changed
+        final GridPane gpSecurity = new GridPane(8.0D, 16.0D);
+        gpSecurity.setStyle("-fx-padding: 20px 0 0 0;");
+        final ColumnConstraints ccField = new ColumnConstraints();
         ccField.setHalignment(HPos.RIGHT);
-        gp.getColumnConstraints().add(ccField);
-        ColumnConstraints ccValue = new ColumnConstraints();
+        gpSecurity.getColumnConstraints().add(ccField);
+        final ColumnConstraints ccValue = new ColumnConstraints();
         ccValue.setHalignment(HPos.LEFT);
-        ccValue.setHgrow(Priority.ALWAYS);
-        gp.getColumnConstraints().add(ccValue);
-        ColumnConstraints ccEdit = new ColumnConstraints();
-        ccEdit.setHalignment(HPos.CENTER);
-        gp.getColumnConstraints().add(ccEdit);
+        gpSecurity.getColumnConstraints().add(ccValue);
+        final ColumnConstraints ccEdit = new ColumnConstraints();
+        ccEdit.setHalignment(HPos.LEFT);
 
-        final Consumer<String> Title = sectionTitle -> {
-            final int rowsFilled = gp.getRowCount();
-            final Label lblTitle = new Label(sectionTitle);
-            lblTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-            lblTitle.setAlignment(Pos.CENTER);
-            lblTitle.setTextAlignment(TextAlignment.CENTER);
-
-            final HBox hbxTitle = new HBox(lblTitle);
-            gp.add(hbxTitle, 0, rowsFilled, 3, 1);
-        };
         final AppResources ar = AppConfig.getAppResources();
         final Supplier<Button> EditButton = () -> {
             final ImageView imgViewCopy = new ImageView(ar.imgEdit);
@@ -76,25 +105,29 @@ public class SettingsScreen extends Pane {
             return lbl;
         };
 
-        Title.accept("General");
-        Title.accept("Personal & Security");
+        final Label lblTitleSecurity = new Label("Personal & Security");
+        lblTitleSecurity.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        lblTitleSecurity.setAlignment(Pos.CENTER);
+        lblTitleSecurity.setTextAlignment(TextAlignment.CENTER);
+        gpSecurity.add(new HBox(lblTitleSecurity), 0, 0, 3, 1);
 
         final Label lblUsernameField = SettingInfoLabel.apply("Username");
         final Label lblUsernameValue = SettingInfoLabel.apply("");
         final Button btnUsernameEdit = EditButton.get();
-        gp.addRow(gp.getRowCount(), lblUsernameField, lblUsernameValue, btnUsernameEdit);
+        gpSecurity.addRow(gpSecurity.getRowCount(), lblUsernameField, lblUsernameValue, btnUsernameEdit);
 
         final Label lblHintField = SettingInfoLabel.apply("Hint");
         final Label lblHintValue = SettingInfoLabel.apply("");
         final Button btnHintEdit = EditButton.get();
-        gp.addRow(gp.getRowCount(), lblHintField, lblHintValue, btnHintEdit);
+        gpSecurity.addRow(gpSecurity.getRowCount(), lblHintField, lblHintValue, btnHintEdit);
 
         final Label lblPasswordField = SettingInfoLabel.apply("Password");
         final Label lblPasswordValue = SettingInfoLabel.apply("Sensitive, not shown");
         final Button btnPasswordEdit = EditButton.get();
-        gp.addRow(gp.getRowCount(), lblPasswordField, lblPasswordValue, btnPasswordEdit);
+        gpSecurity.addRow(gpSecurity.getRowCount(), lblPasswordField, lblPasswordValue, btnPasswordEdit);
 
-        sp.setContent(gp);
+        vbxContent.getChildren().addAll(vbxGeneral, gpSecurity);
+        sp.setContent(vbxContent);
         getChildren().add(sp);
         sp.prefWidthProperty().bind(widthProperty());
         sp.prefHeightProperty().bind(heightProperty());
@@ -106,6 +139,61 @@ public class SettingsScreen extends Pane {
         btnHintEdit.setOnAction(e -> editHint(lblHintValue));
         btnUsernameEdit.setOnAction(e -> editUsername(lblUsernameValue));
         btnPasswordEdit.setOnAction(e -> editPassword());
+
+        final long initialOrder = Math.abs(settingService.getTableFieldsOrder());
+        System.out.println(settingService.getTableFieldsOrder());
+        for(int i = 0; i < fieldNames.length; ++i) {
+            final int fieldMappingNumber = (i + 1) % 10;
+            cbx[i] = new CheckBox(fieldNames[i]);
+            cbx[i].setSelected(Utility.isFieldPresent(fieldMappingNumber, initialOrder));
+            if(i < 2 || i == 9) {//because Account ID, password and action fields cannot be omitted.
+                cbx[i].setSelected(true);
+                cbx[i].setDisable(true);
+            } else {
+                cbx[i].selectedProperty().addListener((ol, ov, nv) -> {
+                    final long oldFieldOrder = settingService.getTableFieldsOrder();
+                    final boolean isDefaultOptionSelected = oldFieldOrder < 0;
+                    final long fieldOrder = Math.abs(oldFieldOrder);
+                    if(nv) {
+                        final long newOrderWithThisField = (isDefaultOptionSelected ? -1 : 1) * Utility.addField(fieldMappingNumber, fieldOrder);
+                        settingService.saveTableFieldsOrderPreference(newOrderWithThisField);
+                    } else {
+                        final long newOrderWithoutThisField = (isDefaultOptionSelected ? -1 : 1) * Utility.removeField(fieldMappingNumber, fieldOrder);
+                        settingService.saveTableFieldsOrderPreference(newOrderWithoutThisField);
+                    }
+                });
+            }
+            fpViewFields.getChildren().add(cbx[i]);
+        }
+
+        final Supplier<Long> FieldOrderCalculator = () -> {
+            int count = 0;
+            long order = 0;
+            for(int i = 0; i < fieldNames.length; ++i) {
+                final int fieldOrderMapping = (i + 1) % 10;
+                if(cbx[i].isSelected()) {
+                    ++count;
+                    order = (order * 10) + fieldOrderMapping;
+                }
+            }
+            return TableFieldsReorderable.getUpdatedFieldsCount(order, count);
+        };
+
+        rbDefault.setOnAction(e -> {
+            rbDefault.setSelected(true);
+            rbCustom.setSelected(false);
+            settingService.saveTableFieldsOrderPreference(-FieldOrderCalculator.get());
+        });
+        rbCustom.setOnAction(e -> {
+            rbCustom.setSelected(true);
+            rbDefault.setSelected(false);
+            settingService.saveTableFieldsOrderPreference(FieldOrderCalculator.get());
+        });
+        if(settingService.getTableFieldsOrder() < 0) {
+            rbDefault.setSelected(true);
+        } else {
+            rbCustom.setSelected(true);
+        }
     }
 
     private boolean isPasswordCorrect(final String plainPassword) {

@@ -1,6 +1,7 @@
 package org.ajikhoji.passwordmanager.service;
 
 import org.ajikhoji.passwordmanager.repository.SettingRepo;
+import org.ajikhoji.passwordmanager.repository.TableFieldsReorderable;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 
 public class SettingServiceImpl implements SettingService {
@@ -58,6 +59,57 @@ public class SettingServiceImpl implements SettingService {
     @Override
     public void changePassword(final EncryptionService oldService, final EncryptionService newService, final String hash, final String salt) {
         repo.changePassword(oldService, newService, hash, salt);
+    }
+
+    /*
+     * Utility method to verify whether the given order is a valid possible field order.
+     * If not, the default table field order will be returned.
+     */
+    private long getCorrectedOrderView(final long order) {
+        if(order == TableFieldsReorderable.DEFAULT_TABLE_FIELDS_ORDER) {
+            return order;
+        }
+        if(order < 0) {//means that default system order option is selected
+            return -getCorrectedOrderView(-order);
+        }
+        boolean corrupted = order <= 0;
+        if(!corrupted) {
+            final int totalFieldsCount = TableFieldsReorderable.getFieldsCount(order);
+            if(totalFieldsCount < 3 || totalFieldsCount > 10) {
+                corrupted = true;
+            } else {
+                long temp = order;
+                int count = totalFieldsCount;
+                final boolean[] encountered = new boolean[10];
+                while(count-- > 0) {
+                    final int d = (int) (temp % 10);
+                    if(encountered[d]) {
+                        corrupted = true;
+                        break;
+                    }
+                    encountered[d] = true;
+                    temp /= 10;
+                }
+            }
+        }
+        return corrupted ? TableFieldsReorderable.DEFAULT_TABLE_FIELDS_ORDER : order;
+    }
+
+    @Override
+    public void saveTableFieldsOrderPreference(long preferenceOrder) {
+        preferenceOrder = getCorrectedOrderView(preferenceOrder);
+        repo.saveTableFieldsOrderPreference(preferenceOrder);
+    }
+
+    @Override
+    public long getTableFieldsOrder() {
+        try {
+            final long order = repo.getTableFieldsOrder();
+            return getCorrectedOrderView(order);
+        } catch (final Exception e) {
+            e.printStackTrace();
+            return TableFieldsReorderable.DEFAULT_TABLE_FIELDS_ORDER;
+        }
     }
 
 }

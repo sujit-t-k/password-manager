@@ -3,6 +3,7 @@ package org.ajikhoji.passwordmanager.ui_components;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -14,6 +15,7 @@ import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.model.AccountEntity;
+import org.ajikhoji.passwordmanager.repository.TableFieldsReorderable;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.service.AccountCustomFieldService;
 import org.ajikhoji.passwordmanager.service.AccountService;
@@ -45,26 +47,52 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
         final TableColumn<AccountEntity, LocalDateTime> tcCreated = new TableColumn<>("Added");
         final TableColumn<AccountEntity, Long> tcLabel = new TableColumn<>("Label");
         final TableColumn<AccountEntity, Void> tcControls = new TableColumn<>("Actions");
+        final TableColumn<AccountEntity, LocalDateTime> tcLastUsed = new TableColumn<>("Last Used");
+        final TableColumn<AccountEntity, LocalDateTime> tcRecentUpdated = new TableColumn<>("Recent updated");
+        final TableColumn<AccountEntity, Integer> tcUsageCount = new TableColumn<>("Usage count");
 
         tcAccPass.setCellValueFactory(new PropertyValueFactory<>("accPassword"));
         tcPlatform.setCellValueFactory(new PropertyValueFactory<>("platform"));
         tcCreated.setCellValueFactory(new PropertyValueFactory<>("createdDateTime"));
         tcLabel.setCellValueFactory(new PropertyValueFactory<>("labelId"));
+        tcLastUsed.setCellValueFactory(new PropertyValueFactory<>("lastUsedDateTime"));
+        tcRecentUpdated.setCellValueFactory(new PropertyValueFactory<>("recentUpdateDateTime"));
+        tcUsageCount.setCellValueFactory(new PropertyValueFactory<>("usageCount"));
 
-        tcAccPass.setSortable(false);
+        tcControls.setSortable(false);
+        tcControls.setPrefWidth(120.0D);
+        tcControls.setResizable(false);
         tcLink.setSortable(false);
         tcLink.setPrefWidth(86.0D);
         tcLink.setResizable(false);
+        tcAccPass.setSortable(false);
         tcAccPass.setPrefWidth(Utility.computeTextWidth("Password", Font.font(16.0D)) * 1.4D);
         tcAccPass.setResizable(false);
 
-        getColumns().add(tcAccName);
-        getColumns().add(tcAccPass);
-        getColumns().add(tcPlatform);
-        getColumns().add(tcLink);
-        getColumns().add(tcCreated);
-        getColumns().add(tcLabel);
-        getColumns().add(tcControls);
+        final TableColumn<AccountEntity, ?>[] allFields = new TableColumn[] {tcControls, tcAccName,
+                tcAccPass, tcPlatform, tcLabel, tcLink, tcCreated, tcLastUsed, tcRecentUpdated, tcUsageCount};
+
+        long fieldOrder = DbConfig.getSettingService().getTableFieldsOrder();
+        boolean disableReordering = false;
+        if(fieldOrder < 0) {
+            fieldOrder *= -1;
+            disableReordering = true;
+        }
+        for (int i = 0; i < allFields.length; ++i) {
+            allFields[i].setId(String.valueOf(i));
+            if(disableReordering) {
+                allFields[i].setReorderable(false);
+            }
+        }
+
+
+        int fieldsCount = TableFieldsReorderable.getFieldsCount(fieldOrder);
+        long order = Utility.reverse(Utility.getFieldOrderWithoutCount(fieldOrder));
+        while (fieldsCount-- > 0) {
+            final int fieldMappingId = (int) (order % 10);
+            getColumns().add(allFields[fieldMappingId]);
+            order /= 10;
+        }
 
         final AppResources ar = AppConfig.getAppResources();
         tcLink.setCellFactory(cf -> new TableCell<>() {
@@ -189,6 +217,38 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                 }
             }
         });
+        tcRecentUpdated.setCellFactory(rowData -> new TableCell<>() {
+            @Override
+            public void updateItem(final LocalDateTime recentUpdatedDate, final boolean empty) {
+                super.updateItem(recentUpdatedDate, empty);
+                if(!empty) {
+                    if(recentUpdatedDate == null) {
+                        setText("-");
+                    } else {
+                        setText(Utility.getFormatedDateTimeString(recentUpdatedDate));
+                    }
+                    setAlignment(Pos.CENTER);
+                } else {
+                    setText(null);
+                }
+            }
+        });
+        tcLastUsed.setCellFactory(rowData -> new TableCell<>() {
+            @Override
+            public void updateItem(final LocalDateTime lastUsedDate, final boolean empty) {
+                super.updateItem(lastUsedDate, empty);
+                if(!empty) {
+                    if(lastUsedDate == null) {
+                        setText("-");
+                    } else {
+                        setText(Utility.getFormatedDateTimeString(lastUsedDate));
+                    }
+                    setAlignment(Pos.CENTER);
+                } else {
+                    setText(null);
+                }
+            }
+        });
 
         final LabelService labelService = DbConfig.getLabelService();
         tcLabel.setCellFactory(rowData -> new TableCell<>() {
@@ -276,6 +336,15 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                     setGraphic(hbxControls);
                 }
             }
+        });
+
+        getColumns().addListener((ListChangeListener<TableColumn<AccountEntity, ?>>) change -> {
+            long newOrder = 0;
+            for (final TableColumn<AccountEntity, ?> field : AccountCredentialViewer.this.getColumns()) {
+                newOrder = (newOrder * 10) + Long.parseLong(field.getId());
+            }
+            final long orderWithCount = TableFieldsReorderable.getUpdatedFieldsCount(newOrder, AccountCredentialViewer.this.getColumns().size());
+            DbConfig.getSettingService().saveTableFieldsOrderPreference(orderWithCount);
         });
     }
 

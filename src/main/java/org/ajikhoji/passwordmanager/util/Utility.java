@@ -16,6 +16,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
+import org.ajikhoji.passwordmanager.repository.TableFieldsReorderable;
 import org.ajikhoji.passwordmanager.ui_components.ToggleableTextField;
 
 import java.sql.Timestamp;
@@ -217,6 +218,53 @@ public class Utility {
         }
         final ToggleableTextField ttf = (ToggleableTextField) n;
         return new EntryField(ttf.getTextProperty(), errorMessage);
+    }
+
+    public static boolean isFieldPresent(final int fieldNumber, long order) {
+        int fieldsCount = TableFieldsReorderable.getFieldsCount(order);
+        while(fieldsCount-- > 0) {
+            if(order % 10 == fieldNumber) {
+                return true;
+            }
+            order /= 10;
+        }
+        return false;
+    }
+
+    public static long addField(final int fieldNumber, final long order) {
+        final int fieldsCount = TableFieldsReorderable.getFieldsCount(order);
+        final long includedFieldOrder = order * 10 + fieldNumber;
+        return TableFieldsReorderable.getUpdatedFieldsCount(includedFieldOrder, fieldsCount + 1);
+    }
+
+    public static long removeField(final int fieldNumber, long order) {
+        int fieldsCount = TableFieldsReorderable.getFieldsCount(order);
+
+        long newOrderReversed = 0;
+        int retainedCount = 0;
+        while(fieldsCount-- > 0) {
+            final int d = (int) (order % 10);
+            if(d != fieldNumber) {
+                newOrderReversed = newOrderReversed * 10 + d;
+                ++retainedCount;
+            }
+            order /= 10;
+        }
+        final long newOrder = reverse(newOrderReversed);
+        return TableFieldsReorderable.getUpdatedFieldsCount(newOrder, retainedCount);
+    }
+
+    public static long reverse(long num) {
+        long res = 0;
+        while(num > 0) {
+            res = (res * 10) + (num % 10);
+            num /= 10;
+        }
+        return res;
+    }
+
+    public static long getFieldOrderWithoutCount(final long order) {
+        return order % 10_000_000_000L;
     }
 
 }
