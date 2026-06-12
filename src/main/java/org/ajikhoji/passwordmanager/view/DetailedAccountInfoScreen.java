@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static org.ajikhoji.passwordmanager.util.Utility.copyText;
+import static org.ajikhoji.passwordmanager.util.ClipboardCopyUtil.copyText;
 
 public class DetailedAccountInfoScreen {
 

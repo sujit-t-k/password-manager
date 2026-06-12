@@ -23,6 +23,7 @@ import org.ajikhoji.passwordmanager.service.AccountCustomFieldService;
 import org.ajikhoji.passwordmanager.service.AccountService;
 import org.ajikhoji.passwordmanager.service.LabelService;
 import org.ajikhoji.passwordmanager.service.SettingService;
+import org.ajikhoji.passwordmanager.util.ClipboardCopyUtil;
 import org.ajikhoji.passwordmanager.util.Utility;
 import org.ajikhoji.passwordmanager.view.DetailedAccountInfoScreen;
 import org.ajikhoji.passwordmanager.view.EditAccountScreen;
@@ -30,23 +31,25 @@ import org.ajikhoji.passwordmanager.view.EditAccountScreen;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.ajikhoji.passwordmanager.util.Utility.copyText;
+import static org.ajikhoji.passwordmanager.util.ClipboardCopyUtil.copyText;
 
 public class AccountCredentialViewer extends TableView<AccountEntity> {
 
     private final List<AccountEntity> allAccounts;
+    private final EncryptionService encryptionService;
 
     public AccountCredentialViewer() {
+        encryptionService = AppConfig.getEncryptionService();
         final AccountService accountService = DbConfig.getAccountService();
         allAccounts = accountService.getAllAccountCredential();
         setItems(FXCollections.observableArrayList(allAccounts));
         setEditable(false);
         setPlaceholder(new Label("No records available"));
 
-        final TableColumn<AccountEntity, String> tcAccName = Utility.getCopyableTableColumn("Account ID/Name", "accName");
+        final TableColumn<AccountEntity, String> tcAccName = new TableColumn<>("Account ID/Name");
         final TableColumn<AccountEntity, String> tcAccPass = new TableColumn<>("Password");
         final TableColumn<AccountEntity, String> tcPlatform = new TableColumn<>("Platform");
-        final TableColumn<AccountEntity, String> tcLink = Utility.getCopyableTableColumn("Link", "link");
+        final TableColumn<AccountEntity, String> tcLink = new TableColumn<>("Link");
         final TableColumn<AccountEntity, LocalDateTime> tcCreated = new TableColumn<>("Added");
         final TableColumn<AccountEntity, Long> tcLabel = new TableColumn<>("Label");
         final TableColumn<AccountEntity, Void> tcControls = new TableColumn<>("Actions");
@@ -54,10 +57,12 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
         final TableColumn<AccountEntity, LocalDateTime> tcRecentUpdated = new TableColumn<>("Recent updated");
         final TableColumn<AccountEntity, Integer> tcUsageCount = new TableColumn<>("Usage");
 
+        tcAccName.setCellValueFactory(new PropertyValueFactory<>("accName"));
         tcAccPass.setCellValueFactory(new PropertyValueFactory<>("accPassword"));
         tcPlatform.setCellValueFactory(new PropertyValueFactory<>("platform"));
-        tcCreated.setCellValueFactory(new PropertyValueFactory<>("createdDateTime"));
+        tcLink.setCellValueFactory(new PropertyValueFactory<>("link"));
         tcLabel.setCellValueFactory(new PropertyValueFactory<>("labelId"));
+        tcCreated.setCellValueFactory(new PropertyValueFactory<>("createdDateTime"));
         tcLastUsed.setCellValueFactory(new PropertyValueFactory<>("lastUsedDateTime"));
         tcRecentUpdated.setCellValueFactory(new PropertyValueFactory<>("recentUpdateDateTime"));
         tcUsageCount.setCellValueFactory(new PropertyValueFactory<>("usageCount"));
@@ -98,6 +103,99 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
         }
 
         final AppResources ar = AppConfig.getAppResources();
+        tcAccName.setCellFactory(cellFactory -> new TableCell<>() {
+            @Override
+            public void updateItem(final String str, final boolean empty) {
+            if(empty || str == null || str.isEmpty()) {
+                setText(getIndex() < getTableView().getItems().size() ? "-" : null);
+            } else {
+                final ImageView imgViewCopy = new ImageView(ar.imgCopy);
+                imgViewCopy.setFitHeight(20.0D);
+                imgViewCopy.setFitWidth(20.0D);
+                final Button btn = new Button("", imgViewCopy);
+                btn.getStyleClass().add("btn-copy");
+                btn.setPrefSize(24.0D, 24.0D);
+                btn.setMaxSize(24.0D, 24.0D);
+                final Tooltip tp = new Tooltip("Copy to clipboard");
+                final Tooltip tpDone = new Tooltip("Copied!");
+                Tooltip.install(btn, tp);
+                btn.setOnAction(e -> {
+                    copy(getIndex(), ClipboardCopyUtil.ContentType.ACCOUNT_ID);
+                    imgViewCopy.setImage(ar.imgCopied);
+                    btn.setGraphic(imgViewCopy);
+                    Tooltip.uninstall(btn, tp);
+                    Tooltip.install(btn, tpDone);
+                });
+                setOnMouseEntered(e -> {
+                    if(getGraphic() != null) {
+                        imgViewCopy.setImage(ar.imgCopy);
+                        btn.setGraphic(imgViewCopy);
+                        Tooltip.uninstall(btn, tpDone);
+                        Tooltip.install(btn, tp);
+                        setGraphic(null);
+                    }
+                });
+                setOnMouseExited(e -> {
+                    imgViewCopy.setImage(ar.imgCopy);
+                    btn.setGraphic(imgViewCopy);
+                    Tooltip.uninstall(btn, tpDone);
+                    Tooltip.install(btn, tp);
+                    setGraphic(null);
+                });
+                setOnMouseEntered(e -> {
+                    setGraphic(btn);
+                });
+                setText(str);
+            }
+            }
+        });
+
+        tcAccPass.setCellFactory(cf -> new TableCell<>() {
+            private boolean copied = false, opened = false;
+            private final ImageView imgViewCopy = new ImageView(ar.imgCopy);
+            final Button btnCopy = new Button("", imgViewCopy);
+
+            @Override
+            protected void updateItem(final String str, final boolean empty) {
+                if(empty || str == null || str.isEmpty()) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    setText(null);
+                    imgViewCopy.setFitHeight(20.0D);
+                    imgViewCopy.setFitWidth(20.0D);
+                    btnCopy.getStyleClass().add("btn-copy");
+                    btnCopy.setPrefSize(24.0D, 24.0D);
+                    btnCopy.setMaxSize(24.0D, 24.0D);
+                    btnCopy.setOnAction(e -> {
+                        if(!this.copied) {
+                            copy(getIndex(), ClipboardCopyUtil.ContentType.PASSWORD);
+                            imgViewCopy.setImage(ar.imgCopied);
+                            btnCopy.setGraphic(imgViewCopy);
+                            this.copied = true;
+                            new Timeline(new KeyFrame(Duration.millis(1800.0D), eh -> {
+                                imgViewCopy.setImage(ar.imgCopy);
+                                btnCopy.setGraphic(imgViewCopy);
+                                this.copied = false;
+                            })).playFromStart();
+                        }
+                    });
+                    final Tooltip tp = new Tooltip("Copy password to clipboard");
+                    Tooltip.install(btnCopy, tp);
+                    final ImageView imgViewLink = new ImageView(ar.imgLinkOpen);
+                    imgViewLink.setFitHeight(20.0D);
+                    imgViewLink.setFitWidth(20.0D);
+                    final VBox vbx = new VBox(btnCopy);
+                    vbx.setAlignment(Pos.CENTER);
+                    setGraphic(vbx);
+                }
+                setOnMouseExited(e -> {
+                    this.opened = false;
+                    this.copied = false;
+                });
+            }
+        });
+
         tcLink.setCellFactory(cf -> new TableCell<>() {
             private boolean copied = false, opened = false;
             @Override
@@ -143,13 +241,14 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                             btnLink.setGraphic(imgViewLink);
                             this.opened = true;
 
-                            final AccountEntity currEntity = getItems().get(getIndex());
+                            final int idx = getIndex();
+                            final AccountEntity currEntity = getItems().get(idx);
                             if(currEntity != null) {
                                 final OpenLinkButtonActionCustomizable.LinkActionOption preference = settingService.getOpenLinkActionPreference();
                                 if (preference.equals(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER_AND_COPY_ACC_ID)) {
-                                    copyText(currEntity.getAccName());
+                                    copy(getIndex(), ClipboardCopyUtil.ContentType.ACCOUNT_ID);
                                 } else if (preference.equals(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER_AND_COPY_ACC_PASS)) {
-                                    copyText(AppConfig.getEncryptionService().decrypt(currEntity.getAccPassword()));
+                                    copy(getIndex(), ClipboardCopyUtil.ContentType.PASSWORD);
                                 }
                             }
 
@@ -164,53 +263,6 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                     Tooltip.install(btnLink, tpLink);
                     final HBox hbx = new HBox(10.0D, btnCopy, btnLink);
                     setGraphic(hbx);
-                }
-                setOnMouseExited(e -> {
-                    this.opened = false;
-                    this.copied = false;
-                });
-            }
-        });
-
-        final EncryptionService encryptionService = AppConfig.getEncryptionService();
-        tcAccPass.setCellFactory(cf -> new TableCell<>() {
-            private boolean copied = false, opened = false;
-            private final ImageView imgViewCopy = new ImageView(ar.imgCopy);
-            final Button btnCopy = new Button("", imgViewCopy);
-
-            @Override
-            protected void updateItem(final String str, final boolean empty) {
-                if(empty || str == null || str.isEmpty()) {
-                    setText(null);
-                    setGraphic(null);
-                } else {
-                    setText(null);
-                    imgViewCopy.setFitHeight(20.0D);
-                    imgViewCopy.setFitWidth(20.0D);
-                    btnCopy.getStyleClass().add("btn-copy");
-                    btnCopy.setPrefSize(24.0D, 24.0D);
-                    btnCopy.setMaxSize(24.0D, 24.0D);
-                    btnCopy.setOnAction(e -> {
-                        if(!this.copied) {
-                            copyText(encryptionService.decrypt(str));
-                            imgViewCopy.setImage(ar.imgCopied);
-                            btnCopy.setGraphic(imgViewCopy);
-                            this.copied = true;
-                            new Timeline(new KeyFrame(Duration.millis(1800.0D), eh -> {
-                                imgViewCopy.setImage(ar.imgCopy);
-                                btnCopy.setGraphic(imgViewCopy);
-                                this.copied = false;
-                            })).playFromStart();
-                        }
-                    });
-                    final Tooltip tp = new Tooltip("Copy password to clipboard");
-                    Tooltip.install(btnCopy, tp);
-                    final ImageView imgViewLink = new ImageView(ar.imgLinkOpen);
-                    imgViewLink.setFitHeight(20.0D);
-                    imgViewLink.setFitWidth(20.0D);
-                    final VBox vbx = new VBox(btnCopy);
-                    vbx.setAlignment(Pos.CENTER);
-                    setGraphic(vbx);
                 }
                 setOnMouseExited(e -> {
                     this.opened = false;
@@ -353,6 +405,40 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
             final long orderWithCount = TableFieldsPreferenceRememberable.getUpdatedFieldsCount(newOrder, AccountCredentialViewer.this.getColumns().size());
             settingService.saveTableFieldsOrderPreference(orderWithCount);
         });
+    }
+
+    private void copy(final int idx, final ClipboardCopyUtil.ContentType contentType) {
+        final AccountEntity accountEntity = getItems().get(idx);
+        final String content = switch (contentType) {
+            case ACCOUNT_ID -> accountEntity.getAccName();
+            case PASSWORD -> encryptionService.decrypt(accountEntity.getAccPassword());
+            default -> accountEntity.getLink();
+        };
+
+        copyText(
+            content,
+            contentType,
+            accountEntity.getAccId(),
+            () -> {
+                final AccountEntity updatedEntity = AccountEntity.Builder()
+                        .withAccountId(accountEntity.getAccId())
+                        .withAccountName(accountEntity.getAccName())
+                        .withEncryptedAccountPassword(accountEntity.getAccPassword())
+                        .withLabelId(accountEntity.getLabelId())
+                        .withAccountPlatform(accountEntity.getPlatform())
+                        .withLink(accountEntity.getLink())
+                        .withCreatedDateTime(accountEntity.getCreatedDateTime())
+                        .withLastUpdatedDateTime(accountEntity.getRecentUpdateDateTime())
+                        .withUsageCount(accountEntity.getUsageCount() + 1)
+                        .withLastUsedDateTime(LocalDateTime.now())
+                        .build();
+                try {
+                    DbConfig.getAccountService().updateAccountCredential(accountEntity, updatedEntity);
+                    getItems().set(idx, updatedEntity);
+                    AccountCredentialViewer.this.refresh();
+                } catch (final Exception ignored) { }
+            }
+        );
     }
 
     public List<AccountEntity> getAllAccounts() {

@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import static org.ajikhoji.passwordmanager.util.ClipboardCopyUtil.copyText;
+
 public class Utility {
 
     private Utility() {}
@@ -138,13 +140,6 @@ public class Utility {
             }
         });
         return tc;
-    }
-
-    private final static Clipboard cb = Clipboard.getSystemClipboard();
-    public static void copyText(final String str) {
-        final Map<DataFormat, Object> copyMap = new HashMap<>();
-        copyMap.put(DataFormat.PLAIN_TEXT, str);
-        cb.setContent(copyMap);
     }
 
     public static <T> void autoFitColumnWidth(TableColumn<T, String> column) {
