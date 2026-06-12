@@ -130,9 +130,7 @@ public class DetailedAccountInfoScreen {
         imgViewCopy.setFitHeight(20.0D);
         imgViewCopy.setFitWidth(20.0D);
         final Button btn = new Button("", imgViewCopy);
-        btn.getStyleClass().add("btn-table");
-        btn.setPrefSize(24.0D, 24.0D);
-        btn.setMaxSize(24.0D, 24.0D);
+        btn.getStyleClass().add("btn-copy-full-info");
 
         final HBox hbx = new HBox(6.0D, lbl);
         hbx.setAlignment(Pos.CENTER_LEFT);

@@ -5,14 +5,21 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import javafx.stage.StageStyle;
 import org.ajikhoji.passwordmanager.Launcher;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
@@ -31,6 +38,7 @@ import org.ajikhoji.passwordmanager.util.Utility;
 import org.ajikhoji.passwordmanager.validator.AccountInfoValidator;
 
 import javax.crypto.SecretKey;
+import java.io.File;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -125,7 +133,7 @@ public class SettingsScreen extends Pane {
             imgViewCopy.setFitHeight(20.0D);
             imgViewCopy.setFitWidth(20.0D);
             final Button btnEdit = new Button("", imgViewCopy);
-            btnEdit.getStyleClass().add("btn-table-edit");
+            btnEdit.getStyleClass().add("btn-img");
             return btnEdit;
         };
         final Function<String, Label> SettingInfoLabel = text -> {
@@ -186,6 +194,7 @@ public class SettingsScreen extends Pane {
         btnPasswordEdit.setOnAction(e -> editPassword());
 
         btnClearData.setOnAction(e -> showClearDataConfirmation());
+        btnExport.setOnAction(e -> showExportDataDialog());
 
         final long initialOrder = Math.abs(settingService.getTableFieldsOrder());
         for(int i = 0; i < fieldNames.length; ++i) {
@@ -478,6 +487,218 @@ public class SettingsScreen extends Pane {
         });
 
         showSettingEditor(st, vbxFields, "Clear data");
+    }
+
+    private String saveFilePath = "";
+    private String pathWithNoPrefix = "";
+    private String shortenedPath = "";
+    private Tooltip locationToolTip = null;
+    private void showExportDataDialog() {
+        final Stage st = new Stage();
+        final VBox vbxFields = new VBox(16.0D);
+        vbxFields.setStyle("-fx-padding: 16px;");
+
+        if(DbConfig.getAccountService().getAllAccountCredential().isEmpty()) {
+            final Label lblPrompt = new Label("No data available to export");
+            lblPrompt.setStyle("-fx-font-size: 20px;");
+            vbxFields.getChildren().add(lblPrompt);
+
+            final Button btnOk = new Button("Close");
+            btnOk.setStyle("-fx-font-size: 16px;");
+            final HBox hbOk = new HBox(btnOk);
+            vbxFields.getChildren().add(hbOk);
+
+            btnOk.setOnAction(e -> st.close());
+            showSettingEditor(st, vbxFields, "Export data");
+
+            return;
+        }
+
+        final Label lblPrompt = new Label("Export all stored account credentials and custom field information to a CSV file.");
+        vbxFields.getChildren().add(lblPrompt);
+
+        final Utility.EntryField password = Utility.addLabeledTextField("Enter app password to continue", 50, vbxFields);
+
+        final Label lblFileLocation = new Label("File location with name");
+        final String locationNotSelected = "Selected file location with name will be displayed here. Once selected, click here to view expanded path.";
+        shortenedPath = locationNotSelected;
+        pathWithNoPrefix = locationNotSelected;
+        final TextField tfLocationValue = new TextField(locationNotSelected);
+        tfLocationValue.setEditable(false);
+        HBox.setHgrow(tfLocationValue, Priority.ALWAYS);
+        final Button btnLocate = new Button("Browse...");
+        final VBox vbxFileLocation = new VBox(6.0D, lblFileLocation, new HBox(6.0D, tfLocationValue, btnLocate));;
+        vbxFields.getChildren().add(vbxFileLocation);
+
+        final Image imgWarning = AppConfig.getAppResources().imgWarning;
+        final Label lblWarning = new Label("The CSV file to be exported will contain unencrypted passwords.\n" +
+                "Anyone with access to the file can view your credentials.");
+        lblWarning.setStyle("-fx-text-fill: #FFB80F; -fx-font-size: 16px;");
+        lblWarning.setAlignment(Pos.CENTER);
+        lblWarning.setTextAlignment(TextAlignment.CENTER);
+        lblWarning.prefWidthProperty().bind(vbxFields.widthProperty());
+        final ImageView ivWarning = new ImageView(imgWarning);
+        ivWarning.setFitHeight(25.0D);
+        ivWarning.setPreserveRatio(true);
+        lblWarning.setGraphic(ivWarning);
+        vbxFields.getChildren().add(lblWarning);
+
+        final Button btnProceed = new Button("Export");
+        btnProceed.getStyleClass().add("btn-important-decision-warning");
+        btnProceed.setStyle("-fx-font-size: 16px;");
+        final HBox hbxControls = new HBox(btnProceed);
+        hbxControls.setAlignment(Pos.CENTER);
+        vbxFields.getChildren().add(hbxControls);
+
+        btnLocate.setOnAction(e -> {
+            final FileChooser chooser = new FileChooser();
+
+            chooser.setTitle("Export all account credentials");
+            chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter(
+            "CSV Files",
+            "*.csv"
+                )
+            );
+
+            final File file = chooser.showSaveDialog(AppConfig.getPrimaryStage());
+            if(file != null) {
+                saveFilePath = file.getAbsolutePath();
+                pathWithNoPrefix = saveFilePath;
+
+                if(pathWithNoPrefix.startsWith("\\\\?\\")) {//when file path is too long Windows OS adds '\\?\' as prefix. use it while saving data but don't show it to user.
+                    pathWithNoPrefix = pathWithNoPrefix.substring(4);
+                }
+                final int count = (int) pathWithNoPrefix.chars().filter(c -> c == '\\').count();
+
+                if(count > 2) {
+                    final int firstOccurrenceIdx = pathWithNoPrefix.indexOf('\\');
+                    final int secondOccurrenceIdx = pathWithNoPrefix.indexOf('\\', firstOccurrenceIdx + 1);
+                    final int lastOccurrenceIdx = pathWithNoPrefix.lastIndexOf('\\');
+                    shortenedPath = String.format("%s...%s", pathWithNoPrefix.substring(0, secondOccurrenceIdx + 1), pathWithNoPrefix.substring(lastOccurrenceIdx));
+                } else {
+                    shortenedPath = pathWithNoPrefix;
+                }
+                tfLocationValue.setText(shortenedPath);
+
+                if(locationToolTip == null) {
+                    locationToolTip = new Tooltip();
+                    tfLocationValue.setTooltip(locationToolTip);
+                }
+                locationToolTip.setText(pathWithNoPrefix);
+            }
+        });
+        tfLocationValue.focusedProperty().addListener((ol, ov, nv) -> {
+            if(nv) {
+                tfLocationValue.setText(pathWithNoPrefix);
+            } else {
+                tfLocationValue.setText(shortenedPath);
+            }
+        });
+
+        btnProceed.setOnAction(e -> {
+            if(tfLocationValue.getText().equals(locationNotSelected) || saveFilePath == null || saveFilePath.isBlank()) {
+                Utility.showErrorAlert("Validation Error", "Select valid save location");
+                return;
+            }
+            if(isPasswordCorrect(password.textProperty().get())) {
+                showExportDataProcessingInfo();
+                st.close();
+            } else {
+                password.errorMessageProperty().set("Incorrect password entered");
+                Utility.showErrorAlert("Operation Failed", "Incorrect password entered");
+            }
+        });
+
+        showSettingEditor(st, vbxFields, "Export data");
+    }
+
+    private void showExportDataProcessingInfo() {
+        final Stage st = new Stage();
+        final Scene appScene = AppConfig.getScene();
+        final ColorAdjust ca = new ColorAdjust();
+        ca.setBrightness(-0.4D);
+        appScene.getRoot().setEffect(ca);
+
+        st.initStyle(StageStyle.UNDECORATED);
+        final VBox vbxFields = new VBox(16.0D);
+        vbxFields.setStyle("-fx-padding: 16px; -fx-border-width: 2px; -fx-border-color: #565656;");
+
+        final Label lblPrompt = new Label("Data export in progress. Please wait for a moment.");
+        vbxFields.getChildren().add(lblPrompt);
+
+        final ProgressBar pbProgress = new ProgressBar();
+        pbProgress.prefWidthProperty().bind(vbxFields.widthProperty());
+        vbxFields.getChildren().add(pbProgress);
+
+        showSettingEditor(st, vbxFields, "Exporting data");
+
+        try {
+            Utility.exportAllCredentialDataAsCsv(saveFilePath, pbProgress);
+            showExportSuccessDialog();
+        } catch (final Exception e) {
+            Utility.showErrorAlert("Operation Failed", "Internal Error occurred");
+        } finally {
+            st.close();
+            appScene.getRoot().setEffect(null);
+        }
+    }
+
+    private void showExportSuccessDialog() {
+        final Stage st = new Stage();
+        final VBox vbxInfo = new VBox(16.0D);
+        vbxInfo.setStyle("-fx-padding: 16px;");
+
+        final Label lblPrompt = new Label("Your data has been exported successfully.");
+        vbxInfo.getChildren().add(lblPrompt);
+
+        final Label lblLocation = new Label("Location");
+        final Label lblLocationValue = new Label(pathWithNoPrefix);
+        lblLocationValue.setWrapText(true);
+        Tooltip.install(lblLocationValue, new Tooltip(pathWithNoPrefix));
+        final VBox vbxLocation = new VBox(4.0D, lblLocation, lblLocationValue);
+        vbxInfo.getChildren().add(vbxLocation);
+
+        final Image imgWarning = AppConfig.getAppResources().imgWarning;
+        final Label lblWarning = new Label("This file contains unencrypted passwords.");
+        lblWarning.setStyle("-fx-text-fill: #FFB80F; -fx-font-size: 16px;");
+        lblWarning.setAlignment(Pos.CENTER);
+        lblWarning.setTextAlignment(TextAlignment.CENTER);
+        lblWarning.prefWidthProperty().bind(vbxInfo.widthProperty());
+        final ImageView ivWarning = new ImageView(imgWarning);
+        ivWarning.setFitHeight(25.0D);
+        ivWarning.setPreserveRatio(true);
+        lblWarning.setGraphic(ivWarning);
+
+        final Label lblTip = new Label("Store it securely and delete it when no longer needed.");
+        vbxInfo.getChildren().add(lblWarning);
+        final VBox vbxWarning = new VBox(4.0D, lblWarning, lblTip);
+        vbxInfo.getChildren().add(vbxWarning);
+
+        final Button btnOpen = new Button("View in File Explorer");
+        final Button btnClose = new Button("Close");
+        btnOpen.setStyle("-fx-font-size: 16px;");
+        btnClose.setStyle("-fx-font-size: 16px;");
+        final HBox hbxControls = new HBox(16.0D, btnOpen, btnClose);
+        hbxControls.setAlignment(Pos.CENTER);
+        vbxInfo.getChildren().add(hbxControls);
+
+        vbxInfo.setPrefWidth(Math.clamp(500.0D, AppConfig.getScreenWidth() * 0.35D, AppConfig.getScreenWidth()));
+
+        btnOpen.setOnAction(e -> {
+            try {
+                new ProcessBuilder(
+                        "explorer.exe",
+                        "/select,",
+                        pathWithNoPrefix
+                ).start();
+            } catch (final Exception ex) {
+                Utility.showErrorAlert("Permission denied", "System does not allow to open file explorer.");
+            }
+        });
+        btnClose.setOnAction(e -> st.close());
+
+        showSettingEditor(st, vbxInfo, "Export completed");
     }
 
     private void showSettingEditor(final Stage st, final Pane paneBase, final String windowTitle) {

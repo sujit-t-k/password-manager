@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 import org.ajikhoji.passwordmanager.config.AppConfig;
@@ -51,7 +52,7 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
         final TableColumn<AccountEntity, Void> tcControls = new TableColumn<>("Actions");
         final TableColumn<AccountEntity, LocalDateTime> tcLastUsed = new TableColumn<>("Last Used");
         final TableColumn<AccountEntity, LocalDateTime> tcRecentUpdated = new TableColumn<>("Recent updated");
-        final TableColumn<AccountEntity, Integer> tcUsageCount = new TableColumn<>("Usage count");
+        final TableColumn<AccountEntity, Integer> tcUsageCount = new TableColumn<>("Usage");
 
         tcAccPass.setCellValueFactory(new PropertyValueFactory<>("accPassword"));
         tcPlatform.setCellValueFactory(new PropertyValueFactory<>("platform"));
@@ -103,7 +104,6 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
             protected void updateItem(final String str, final boolean empty) {
                 if(empty || str == null || str.isEmpty()) {
                     setText(getIndex() < getItems().size() ? "-" : null);
-                    setAlignment(Pos.CENTER);
                     setGraphic(null);
                 } else {
                     setText(null);
@@ -111,7 +111,7 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                     imgViewCopy.setFitHeight(20.0D);
                     imgViewCopy.setFitWidth(20.0D);
                     final Button btnCopy = new Button("", imgViewCopy);
-                    btnCopy.getStyleClass().add("btn-table");
+                    btnCopy.getStyleClass().add("btn-copy");
                     btnCopy.setPrefSize(24.0D, 24.0D);
                     btnCopy.setMaxSize(24.0D, 24.0D);
                     btnCopy.setOnAction(e -> {
@@ -133,7 +133,7 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                     imgViewLink.setFitHeight(20.0D);
                     imgViewLink.setFitWidth(20.0D);
                     final Button btnLink = new Button("", imgViewLink);
-                    btnLink.getStyleClass().addAll("btn-table","btn-link");
+                    btnLink.getStyleClass().add("btn-link");
                     btnLink.setPrefSize(24.0D, 24.0D);
                     btnLink.setMaxSize(24.0D, 24.0D);
                     btnLink.setOnAction(e -> {
@@ -187,7 +187,7 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                     setText(null);
                     imgViewCopy.setFitHeight(20.0D);
                     imgViewCopy.setFitWidth(20.0D);
-                    btnCopy.getStyleClass().add("btn-table");
+                    btnCopy.getStyleClass().add("btn-copy");
                     btnCopy.setPrefSize(24.0D, 24.0D);
                     btnCopy.setMaxSize(24.0D, 24.0D);
                     btnCopy.setOnAction(e -> {
@@ -208,13 +208,14 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                     final ImageView imgViewLink = new ImageView(ar.imgLinkOpen);
                     imgViewLink.setFitHeight(20.0D);
                     imgViewLink.setFitWidth(20.0D);
-                    setGraphic(btnCopy);
+                    final VBox vbx = new VBox(btnCopy);
+                    vbx.setAlignment(Pos.CENTER);
+                    setGraphic(vbx);
                 }
                 setOnMouseExited(e -> {
                     this.opened = false;
                     this.copied = false;
                 });
-                setAlignment(Pos.CENTER);
             }
         });
 
@@ -224,7 +225,6 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                 super.updateItem(createdDate, empty);
                 if(!empty) {
                     setText(Utility.getFormatedDateTimeString(createdDate));
-                    setAlignment(Pos.CENTER);
                 } else {
                     setText(null);
                 }
@@ -240,7 +240,6 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                     } else {
                         setText(Utility.getFormatedDateTimeString(recentUpdatedDate));
                     }
-                    setAlignment(Pos.CENTER);
                 } else {
                     setText(null);
                 }
@@ -256,7 +255,6 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                     } else {
                         setText(Utility.getFormatedDateTimeString(lastUsedDate));
                     }
-                    setAlignment(Pos.CENTER);
                 } else {
                     setText(null);
                 }
@@ -270,7 +268,6 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                 super.updateItem(labelId, empty);
                 if(!empty) {
                     setText(labelService.getLabelEntityById(labelId).getLabelName());
-                    setAlignment(Pos.CENTER);
                 } else {
                     setText(null);
                 }
@@ -278,7 +275,7 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
         });
 
         tcControls.setCellFactory(cellFactory -> new TableCell<>() {
-            private final ImageView ivShowMore = new ImageView(ar.imgLinkOpen);
+            private final ImageView ivShowMore = new ImageView(ar.imgInfo);
             private final ImageView ivEdit = new ImageView(ar.imgEdit);
             private final ImageView ivDelete = new ImageView(ar.imgDelete);
             private final Button btnShowMore = new Button();
@@ -293,13 +290,10 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
                 ivEdit.setPreserveRatio(true);
                 ivDelete.setFitHeight(20.0D);
                 ivDelete.setPreserveRatio(true);
-                btnShowMore.getStyleClass().add("btn-table-edit");
-                btnShowMore.setStyle("-fx-padding: 3px;");
-                btnEdit.getStyleClass().add("btn-table-edit");
-                btnEdit.setStyle("-fx-padding: 3px;");
-                btnDelete.getStyleClass().add("btn-table-delete");
-                btnDelete.setStyle("-fx-padding: 3px;");
-                Tooltip.install(btnShowMore, new Tooltip("Show more"));
+                btnShowMore.getStyleClass().add("btn-img");
+                btnEdit.getStyleClass().add("btn-img");
+                btnDelete.getStyleClass().add("btn-img-delete");
+                Tooltip.install(btnShowMore, new Tooltip("Show detailed information"));
                 Tooltip.install(btnEdit, new Tooltip("Modify / Edit"));
                 Tooltip.install(btnDelete, new Tooltip("Delete"));
                 hbxControls.setAlignment(Pos.CENTER);
