@@ -34,7 +34,7 @@ public class AppLockScreen {
         vbxParent.getChildren().add(lblHeader);
 
         final VBox vbxCenter = new VBox(12.0D);
-        final Utility.EntryField pass = Utility.addLabeledTextField("Enter password", 50, vbxCenter);
+        final Utility.EntryField pass = Utility.addLabeledToggleablePasswordField("Enter password", 50, vbxCenter);
         final Label lblHint = new Label(String.format("Hint: %s", hint));
         lblHint.setStyle("-fx-font-size: 16px;");
         vbxCenter.getChildren().add(lblHint);

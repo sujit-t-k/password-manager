@@ -13,27 +13,54 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import org.ajikhoji.passwordmanager.config.AppConfig;
+import org.ajikhoji.passwordmanager.util.Utility;
 
 import java.util.function.Consumer;
 
 public class ToggleableTextField extends HBox {
 
-    private final StringProperty spText;
-    private ChangeListener<String> listener;
+    private final TextField tf;
+    private final PasswordField pf;
+    private final StringProperty textProperty;
+    private ChangeListener<String> textFieldListener, passwordFieldListener;
+    private final BooleanProperty bpMaskPassword;
 
-    public ToggleableTextField(final boolean maskPassword, final String defaultValue) {
-        spText = new SimpleStringProperty(defaultValue);
+    public ToggleableTextField(final boolean maskPassword, final String defaultValue, final boolean disablePaste) {
+        if(disablePaste) {
+            tf = new TextField() {
+                @Override
+                public void copy() {
+                    Utility.showInformationAlert("Copy Disabled", "Copy feature not allowed for this field.");
+                }
+                @Override
+                public void paste() {
+                    Utility.showInformationAlert("Paste Disabled", "Paste feature not allowed for this field.");
+                }
+            };
+            pf = new PasswordField() {
+                @Override
+                public void paste() {
+                    Utility.showInformationAlert("Paste Disabled", "Paste feature not allowed for this field.");
+                }
+            };
+        } else {
+            tf = new TextField() {
+                @Override
+                public void copy() {
+                    Utility.showInformationAlert("Copy Disabled", "Copy feature not allowed for this field.");
+                }
+            };
+            pf = new PasswordField();
+        }
 
-        final TextField tf = new TextField();
-        final PasswordField pf = new PasswordField();
-        final BooleanProperty bpMaskPassword = new SimpleBooleanProperty(maskPassword);
+        bpMaskPassword = new SimpleBooleanProperty(maskPassword);
+        textProperty = new SimpleStringProperty(defaultValue);
+        textProperty.addListener((ol, ov, nv) -> {
+            tf.setText(nv);
+            pf.setText(nv);
+        });
 
-        tf.textProperty().bindBidirectional(spText);
-        pf.textProperty().bindBidirectional(spText);
-
-        tf.setPrefColumnCount(60);
         tf.setMaxWidth(Region.USE_PREF_SIZE);
-        pf.setPrefColumnCount(60);
         pf.setMaxWidth(Region.USE_PREF_SIZE);
 
         final ImageView toggler = new ImageView();
@@ -41,13 +68,16 @@ public class ToggleableTextField extends HBox {
         toggler.setPreserveRatio(true);
         final Consumer<Boolean> onMaskValueChange = mask -> {
             if(mask) {
+                pf.setText(textProperty.get());
                 getChildren().set(0, pf);
                 toggler.setImage(AppConfig.getAppResources().imgEyeClosed);
             } else {
+                tf.setText(textProperty.get());
                 getChildren().set(0, tf);
                 toggler.setImage(AppConfig.getAppResources().imgEyeOpened);
             }
         };
+
         final Button btnToggler = new Button();
         btnToggler.setGraphic(toggler);
         btnToggler.setOnAction(e -> bpMaskPassword.set(!bpMaskPassword.get()));
@@ -63,37 +93,57 @@ public class ToggleableTextField extends HBox {
     }
 
     public ToggleableTextField() {
-        this("");
+        this(false);
     }
 
-    public ToggleableTextField(String defaultValue) {
-        this(true, defaultValue);
+    public ToggleableTextField(final boolean blnDisablePasteFeature) {
+        this("", blnDisablePasteFeature);
+    }
+
+    public ToggleableTextField(String defaultValue, boolean blnDisablePasteFeature) {
+        this(true, defaultValue, blnDisablePasteFeature);
     }
 
     public String getText() {
-        return spText.get();
+        return textProperty.getValue();
     }
 
     public void setText(final String text) {
-        spText.set(text);
+        textProperty.set(text);
     }
 
     public StringProperty getTextProperty() {
-        return this.spText;
+        return this.textProperty;
     }
 
     public void setMaxLength(final int length) {
         if(length < 1) return;
-        if(listener != null) {
-            spText.removeListener(listener);
+        if(textFieldListener != null) {
+            tf.textProperty().removeListener(textFieldListener);
         }
-        listener = (observable, oldValue, newValue) -> {
+        if(passwordFieldListener != null) {
+            pf.textProperty().removeListener(passwordFieldListener);
+        }
+        textFieldListener = (observable, oldValue, newValue) -> {
             if(newValue == null || newValue.isEmpty()) return;
             if(newValue.length() > length) {
-                spText.set(newValue.substring(0, length));
+                tf.setText(newValue.substring(0, length));
+                return;
             }
+            textProperty.set(newValue);
         };
-        spText.addListener(listener);
+        passwordFieldListener = (observable, oldValue, newValue) -> {
+            if(newValue == null || newValue.isEmpty()) return;
+            if(newValue.length() > length) {
+                pf.setText(newValue.substring(0, length));
+                return;
+            }
+            textProperty.set(newValue);
+        };
+        tf.setPrefColumnCount(length);
+        pf.setPrefColumnCount(length);
+        tf.textProperty().addListener(textFieldListener);
+        pf.textProperty().addListener(passwordFieldListener);
     }
 
 }

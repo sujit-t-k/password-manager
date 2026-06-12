@@ -32,6 +32,7 @@ import org.ajikhoji.passwordmanager.security.AesEncryptionService;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.security.KeyManager;
 import org.ajikhoji.passwordmanager.service.SettingService;
+import org.ajikhoji.passwordmanager.util.ClipboardCopyUtil;
 import org.ajikhoji.passwordmanager.util.HashUtil;
 import org.ajikhoji.passwordmanager.util.SaltUtil;
 import org.ajikhoji.passwordmanager.util.Utility;
@@ -288,7 +289,7 @@ public class SettingsScreen extends Pane {
         final VBox vbxFields = new VBox();
         vbxFields.setStyle("-fx-padding: 6px 6px 6px 6px;");
         final Utility.EntryField hintField = Utility.addLabeledTextField("Enter hint questionnaire", "New hint goes here", 50, vbxFields);
-        final Utility.EntryField password = Utility.addLabeledTextField("Enter password", 50, vbxFields);
+        final Utility.EntryField password = Utility.addLabeledToggleablePasswordField("Enter password", 50, true, vbxFields);
         final Button btnClose = new Button("Close");
         final Button btnApply = new Button("Apply");
         final HBox hbxControls = new HBox(12.0D, btnClose, btnApply);
@@ -328,7 +329,7 @@ public class SettingsScreen extends Pane {
         final VBox vbxFields = new VBox();
         vbxFields.setStyle("-fx-padding: 6px 6px 6px 6px;");
         final Utility.EntryField userNameField = Utility.addLabeledTextField("Enter user name to be displayed", 50, vbxFields);
-        final Utility.EntryField password = Utility.addLabeledTextField("Enter password", 50, vbxFields);
+        final Utility.EntryField password = Utility.addLabeledToggleablePasswordField("Enter password", 50, true, vbxFields);
         final Button btnClose = new Button("Close");
         final Button btnApply = new Button("Apply");
         final HBox hbxControls = new HBox(12.0D, btnClose, btnApply);
@@ -367,9 +368,9 @@ public class SettingsScreen extends Pane {
         final Stage st = new Stage();
         final VBox vbxFields = new VBox();
         vbxFields.setStyle("-fx-padding: 6px 6px 6px 6px;");
-        final Utility.EntryField password = Utility.addLabeledTextField("Enter current password", 50, vbxFields);
-        final Utility.EntryField newPassword = Utility.addLabeledTextField("Enter new password", 50, vbxFields);
-        final Utility.EntryField newPasswordConfirm = Utility.addLabeledTextField("Confirm new password", 50, vbxFields);
+        final Utility.EntryField password = Utility.addLabeledToggleablePasswordField("Enter current password", 50, true, vbxFields);
+        final Utility.EntryField newPassword = Utility.addLabeledToggleablePasswordField("Enter new password", 50, vbxFields);
+        final Utility.EntryField newPasswordConfirm = Utility.addLabeledToggleablePasswordField("Confirm new password", 50, true, vbxFields);
         final Button btnClose = new Button("Close");
         final Button btnApply = new Button("Apply");
         final HBox hbxControls = new HBox(12.0D, btnClose, btnApply);
@@ -450,7 +451,7 @@ public class SettingsScreen extends Pane {
                 "information stored in this app. Setting preferences will be retained.");
         vbxFields.getChildren().add(lblPrompt);
 
-        final Utility.EntryField password = Utility.addLabeledTextField("Enter app password to proceed", 50, vbxFields);
+        final Utility.EntryField password = Utility.addLabeledToggleablePasswordField("Enter app password to proceed", 50, true, vbxFields);
 
         final Image imgWarning = AppConfig.getAppResources().imgWarning;
         final Label lblWarning = new Label("This action cannot be undone. Deleted data cannot be recovered.");
@@ -477,6 +478,7 @@ public class SettingsScreen extends Pane {
                     DbConfig.getSettingService().clearAccountCredentialData();
                     st.close();
                     Utility.showInformationAlert("Operation Success", "Data cleared!!");
+                    ClipboardCopyUtil.clear();
                 } catch (final Exception ex) {
                     Utility.showErrorAlert("Operation Failed", "Internal Error occurred");
                 }
@@ -517,7 +519,7 @@ public class SettingsScreen extends Pane {
         final Label lblPrompt = new Label("Export all stored account credentials and custom field information to a CSV file.");
         vbxFields.getChildren().add(lblPrompt);
 
-        final Utility.EntryField password = Utility.addLabeledTextField("Enter app password to continue", 50, vbxFields);
+        final Utility.EntryField password = Utility.addLabeledToggleablePasswordField("Enter app password to continue", 50, true, vbxFields);
 
         final Label lblFileLocation = new Label("File location with name");
         final String locationNotSelected = "Selected file location with name will be displayed here. Once selected, click here to view expanded path.";

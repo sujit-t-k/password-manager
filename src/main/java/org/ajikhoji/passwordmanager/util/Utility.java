@@ -96,47 +96,47 @@ public class Utility {
         tc.setCellFactory(cellFactory -> new TableCell<>() {
             @Override
             public void updateItem(final String str, final boolean empty) {
-                if(empty || str == null || str.isEmpty()) {
-                    setText(getIndex() < getTableView().getItems().size() ? "-" : null);
-                } else {
-                    final ImageView imgViewCopy = new ImageView(ar.imgCopy);
-                    imgViewCopy.setFitHeight(20.0D);
-                    imgViewCopy.setFitWidth(20.0D);
-                    final Button btn = new Button("", imgViewCopy);
-                    btn.getStyleClass().add("btn-copy");
-                    btn.setPrefSize(24.0D, 24.0D);
-                    btn.setMaxSize(24.0D, 24.0D);
-                    final Tooltip tp = new Tooltip("Copy to clipboard");
-                    final Tooltip tpDone = new Tooltip("Copied!");
-                    Tooltip.install(btn, tp);
-                    btn.setOnAction(e -> {
-                        copyText(str);
-                        imgViewCopy.setImage(ar.imgCopied);
-                        btn.setGraphic(imgViewCopy);
-                        Tooltip.uninstall(btn, tp);
-                        Tooltip.install(btn, tpDone);
-                    });
-                    setOnMouseEntered(e -> {
-                        if(getGraphic() != null) {
-                            imgViewCopy.setImage(ar.imgCopy);
-                            btn.setGraphic(imgViewCopy);
-                            Tooltip.uninstall(btn, tpDone);
-                            Tooltip.install(btn, tp);
-                            setGraphic(null);
-                        }
-                    });
-                    setOnMouseExited(e -> {
+            if(empty || str == null || str.isEmpty()) {
+                setText(getIndex() < getTableView().getItems().size() ? "-" : null);
+            } else {
+                final ImageView imgViewCopy = new ImageView(ar.imgCopy);
+                imgViewCopy.setFitHeight(20.0D);
+                imgViewCopy.setFitWidth(20.0D);
+                final Button btn = new Button("", imgViewCopy);
+                btn.getStyleClass().add("btn-copy");
+                btn.setPrefSize(24.0D, 24.0D);
+                btn.setMaxSize(24.0D, 24.0D);
+                final Tooltip tp = new Tooltip("Copy to clipboard");
+                final Tooltip tpDone = new Tooltip("Copied!");
+                Tooltip.install(btn, tp);
+                btn.setOnAction(e -> {
+                    copyText(str);
+                    imgViewCopy.setImage(ar.imgCopied);
+                    btn.setGraphic(imgViewCopy);
+                    Tooltip.uninstall(btn, tp);
+                    Tooltip.install(btn, tpDone);
+                });
+                setOnMouseEntered(e -> {
+                    if(getGraphic() != null) {
                         imgViewCopy.setImage(ar.imgCopy);
                         btn.setGraphic(imgViewCopy);
                         Tooltip.uninstall(btn, tpDone);
                         Tooltip.install(btn, tp);
                         setGraphic(null);
-                    });
-                    setOnMouseEntered(e -> {
-                        setGraphic(btn);
-                    });
-                    setText(str);
-                }
+                    }
+                });
+                setOnMouseExited(e -> {
+                    imgViewCopy.setImage(ar.imgCopy);
+                    btn.setGraphic(imgViewCopy);
+                    Tooltip.uninstall(btn, tpDone);
+                    Tooltip.install(btn, tp);
+                    setGraphic(null);
+                });
+                setOnMouseEntered(e -> {
+                    setGraphic(btn);
+                });
+                setText(str);
+            }
             }
         });
         return tc;
@@ -176,21 +176,16 @@ public class Utility {
 
     public static EntryField addLabeledTextField(final String fieldName, final String placeHolder, final int maxLength, final Pane parent) {
         final Label lbl = new Label(fieldName);
-        final Node n = fieldName.contains("Password") || fieldName.contains("password") ? new ToggleableTextField() : new TextField();
+        final TextField tf = new TextField();
         final StringProperty errorMessage = new SimpleStringProperty("");
         final Label lblLength = new Label("0 / " + maxLength);
-        StringProperty textProperty = null;
-        if(n instanceof TextField tf) {
-            if(placeHolder != null) {
-                tf.setPromptText(placeHolder);
-            }
-            textProperty = tf.textProperty();
-            tf.setPrefColumnCount(maxLength);
-            tf.setMaxWidth(Region.USE_PREF_SIZE);
-        } else if (n instanceof ToggleableTextField ttf) {
-            textProperty = ttf.getTextProperty();
+        if(placeHolder != null) {
+            tf.setPromptText(placeHolder);
         }
-        final StringProperty tp = textProperty;
+        tf.setPrefColumnCount(maxLength);
+        tf.setMaxWidth(Region.USE_PREF_SIZE);
+
+        final StringProperty tp = tf.textProperty();
         tp.addListener((ol, ov, nv) -> {
             if (nv == null) {
                 lblLength.setText("0 / " + maxLength);
@@ -198,7 +193,7 @@ public class Utility {
             }
             errorMessage.set("");
             if (nv.length() > maxLength) {
-                tp.set(ov);
+                tp.set(nv.substring(0, maxLength));
                 return;
             }
             lblLength.setText(nv.length() + " / " + maxLength);
@@ -206,7 +201,7 @@ public class Utility {
 
         final Label lblErrorReason = new Label();
         lblErrorReason.setStyle("-fx-text-fill: #D40F37; -fx-background-color: #240309; -fx-padding: 4px;");
-        final VBox v = new VBox(6.0D, lbl, n, lblLength);
+        final VBox v = new VBox(6.0D, lbl, tf, lblLength);
         errorMessage.addListener((ol, ov, nv) -> {
             if (nv == null || nv.isBlank()) {
                 v.getChildren().remove(lblErrorReason);
@@ -218,11 +213,51 @@ public class Utility {
             }
         });
         parent.getChildren().add(v);
-        if(n instanceof TextField tf) {
-            return new EntryField(tf.textProperty(), errorMessage);
-        }
-        final ToggleableTextField ttf = (ToggleableTextField) n;
-        return new EntryField(ttf.getTextProperty(), errorMessage);
+
+        return new EntryField(tp, errorMessage);
+    }
+
+    public static EntryField addLabeledToggleablePasswordField(final String fieldName, final int maxLength, final Pane parent) {
+        return addLabeledToggleablePasswordField(fieldName, maxLength, false, parent);
+    }
+
+    public static EntryField addLabeledToggleablePasswordField(final String fieldName, final int maxLength, final boolean pasteOptionDisabled, final Pane parent) {
+        final Label lbl = new Label(fieldName);
+        final ToggleableTextField ttf = new ToggleableTextField(pasteOptionDisabled);
+        final StringProperty errorMessage = new SimpleStringProperty("");
+        final Label lblLength = new Label("0 / " + maxLength);
+        ttf.setMaxLength(maxLength);
+
+        final StringProperty tp = ttf.getTextProperty();
+        tp.addListener((ol, ov, nv) -> {
+            if (nv == null) {
+                lblLength.setText("0 / " + maxLength);
+                return;
+            }
+            errorMessage.set("");
+            if (nv.length() > maxLength) {
+                tp.set(nv.substring(0, maxLength));
+                return;
+            }
+            lblLength.setText(nv.length() + " / " + maxLength);
+        });
+
+        final Label lblErrorReason = new Label();
+        lblErrorReason.setStyle("-fx-text-fill: #D40F37; -fx-background-color: #240309; -fx-padding: 4px;");
+        final VBox v = new VBox(6.0D, lbl, ttf, lblLength);
+        errorMessage.addListener((ol, ov, nv) -> {
+            if (nv == null || nv.isBlank()) {
+                v.getChildren().remove(lblErrorReason);
+            } else {
+                lblErrorReason.setText(errorMessage.getValue());
+                if (!v.getChildren().contains(lblErrorReason)) {
+                    v.getChildren().add(lblErrorReason);
+                }
+            }
+        });
+        parent.getChildren().add(v);
+
+        return new EntryField(tp, errorMessage);
     }
 
     public static boolean isFieldPresent(final int fieldNumber, long order) {

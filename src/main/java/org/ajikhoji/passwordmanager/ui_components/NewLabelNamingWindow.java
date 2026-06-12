@@ -53,11 +53,24 @@ public class NewLabelNamingWindow {
         hbx.setAlignment(Pos.CENTER);
         gp.add(hbx, 0, 2, 2, 1);
 
+        final String[] reservedNames = new String[]{"any", "all", "none", "every", "each", "no filter", "filter", "select", "apply", "applied"};//to avoid confusion at filtering labels in 'view all credentials' screen
+
         btnCancel.setOnAction(e -> st.close());
         btnAdd.setOnAction(e -> {
             final String name = tfName.getText();
             if(name == null || name.isBlank()) {
                 lblError.setText("Name shall not be blank");
+                return;
+            }
+            boolean isReservedName = false;
+            for(final String reservedName : reservedNames) {
+                if(name.toLowerCase().strip().equals(reservedName)) {
+                    isReservedName = true;
+                    break;
+                }
+            }
+            if(isReservedName) {
+                lblError.setText(String.format("Name '%s' not allowed", name));
                 return;
             }
             if(allAvailableLabels.contains(name)) {

@@ -1,11 +1,8 @@
 package org.ajikhoji.passwordmanager.view;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
@@ -15,9 +12,7 @@ import org.ajikhoji.passwordmanager.model.LabelEntity;
 import org.ajikhoji.passwordmanager.service.LabelService;
 import org.ajikhoji.passwordmanager.ui_components.AccountCustomFieldEditor;
 import org.ajikhoji.passwordmanager.ui_components.NewLabelNamingWindow;
-import org.ajikhoji.passwordmanager.ui_components.ToggleableTextField;
 import org.ajikhoji.passwordmanager.util.Utility;
-import java.util.function.BiFunction;
 
 public class AccountInfoEditor extends BorderPane {
 
@@ -106,60 +101,12 @@ public class AccountInfoEditor extends BorderPane {
         spDetail.setFitToHeight(true);
         bpBase.setCenter(spDetail);
 
-        final BiFunction<String, Integer, Utility.EntryField> field = (fieldName, maxLength) -> {
-            final Label lbl = new Label(fieldName);
-            final Node n = fieldName.contains("Password") ? new ToggleableTextField() : new TextField();
-            final StringProperty errorMessage = new SimpleStringProperty("");
-            final Label lblLength = new Label("0 / " + maxLength);
-            StringProperty textProperty = null;
-            if(n instanceof TextField tf) {
-                textProperty = tf.textProperty();
-                tf.setPrefColumnCount(90);
-                tf.setMaxWidth(Region.USE_PREF_SIZE);
-            } else {
-                final ToggleableTextField ttf = (ToggleableTextField) n;
-                textProperty = ttf.getTextProperty();
-            }
-            final StringProperty tp = textProperty;
-            tp.addListener((ol, ov, nv) -> {
-                if (nv == null) {
-                    lblLength.setText("0 / " + maxLength);
-                    return;
-                }
-                errorMessage.set("");
-                if (nv.length() > maxLength) {
-                    tp.set(ov);
-                    return;
-                }
-                lblLength.setText(nv.length() + " / " + maxLength);
-            });
-
-            final Label lblErrorReason = new Label();
-            lblErrorReason.setStyle("-fx-text-fill: #D40F37; -fx-background-color: #240309; -fx-padding: 4px;");
-            final VBox v = new VBox(6.0D, lbl, n, lblLength);
-            errorMessage.addListener((ol, ov, nv) -> {
-                if (nv == null || nv.isBlank()) {
-                    v.getChildren().remove(lblErrorReason);
-                } else {
-                    lblErrorReason.setText(errorMessage.getValue());
-                    if (!v.getChildren().contains(lblErrorReason)) {
-                        v.getChildren().add(lblErrorReason);
-                    }
-                }
-            });
-            vbxCenter.getChildren().add(v);
-            if(n instanceof TextField tf) {
-                return new Utility.EntryField(tf.textProperty(), errorMessage);
-            }
-            final ToggleableTextField ttf = (ToggleableTextField) n;
-            return new Utility.EntryField(ttf.getTextProperty(), errorMessage);
-        };
-        efName = field.apply("Account Name / ID", 90);
-        efPassword = field.apply("Password", 50);
-        efConfirmPassword = field.apply("Confirm Password", 50);
+        efName = Utility.addLabeledTextField("Account Name / ID", 90, vbxCenter);
+        efPassword = Utility.addLabeledToggleablePasswordField("Password", 50, vbxCenter);
+        efConfirmPassword = Utility.addLabeledToggleablePasswordField("Confirm Password", 50, true, vbxCenter);
         vbxCenter.getChildren().add(hbxLabel);
-        efPlatform = field.apply("Platform", 90);
-        efLink = field.apply("Link", 300);
+        efPlatform = Utility.addLabeledTextField("Platform", 90, vbxCenter);
+        efLink = Utility.addLabeledTextField("Link", 300, vbxCenter);
         vbxCenter.getChildren().add(customFieldEditor);
 
         efName.textProperty().addListener((ol, ov, nv) -> {

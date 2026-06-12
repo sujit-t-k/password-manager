@@ -97,7 +97,7 @@ public class AppSetupScreen {
         final VBox vbxFields = new VBox(16.0D);
         final HBox hbxCenter = new HBox(vbxFields);
         hbxCenter.setAlignment(Pos.CENTER);
-        final Utility.EntryField passwordField = Utility.addLabeledTextField("Create a password", 50, vbxFields);
+        final Utility.EntryField passwordField = Utility.addLabeledToggleablePasswordField("Create a password", 50, vbxFields);
         passwordField.textProperty().set(password);
         final Utility.EntryField hintField = Utility.addLabeledTextField("Enter hint questionnaire", 50, vbxFields);
         hintField.textProperty().set(hint);
@@ -154,7 +154,7 @@ public class AppSetupScreen {
         final VBox vbxFields = new VBox(16.0D);
         final HBox hbxCenter = new HBox(vbxFields);
         hbxCenter.setAlignment(Pos.CENTER);
-        final Utility.EntryField passwordField = Utility.addLabeledTextField("Enter password", 50, vbxFields);
+        final Utility.EntryField passwordField = Utility.addLabeledToggleablePasswordField("Enter password to confirm", 50, true, vbxFields);
         final Label lblHint = new Label(String.format("Hint: %s", hint));
         lblHint.setStyle("-fx-font-size: 16px;");
         vbxFields.getChildren().add(lblHint);
