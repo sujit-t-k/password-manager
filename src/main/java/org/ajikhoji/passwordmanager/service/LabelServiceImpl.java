@@ -56,6 +56,11 @@ public class LabelServiceImpl implements LabelService {
     }
 
     @Override
+    public List<LabelEntity> getUsedLabels() {
+        return repo.getUsedLabels();
+    }
+
+    @Override
     public LabelEntity getLabelEntityById(long id) {
         final LabelEntity required = idToEntity.get(id);
         if(required == null) {

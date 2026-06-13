@@ -52,10 +52,8 @@ public class AccountCustomFieldViewer extends TableView<AccountCustomFieldEntity
                 ivEdit.setPreserveRatio(true);
                 ivDelete.setFitHeight(20.0D);
                 ivDelete.setPreserveRatio(true);
-                btnEdit.getStyleClass().add("btn-table-edit");
-                btnEdit.setStyle("-fx-padding: 3px;");
-                btnDelete.getStyleClass().add("btn-table-delete");
-                btnDelete.setStyle("-fx-padding: 3px;");
+                btnEdit.getStyleClass().add("btn-img");
+                btnDelete.getStyleClass().add("btn-img-delete");
                 Tooltip.install(btnEdit, new Tooltip("Modify / Edit"));
                 Tooltip.install(btnDelete, new Tooltip("Delete"));
                 hbxControls.setAlignment(Pos.CENTER);

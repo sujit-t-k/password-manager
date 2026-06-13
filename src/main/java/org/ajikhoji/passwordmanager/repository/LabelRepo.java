@@ -9,5 +9,6 @@ public interface LabelRepo {
     void addNewLabel(LabelEntity newEntity);
     void deleteLabel(LabelEntity entityToDelete);
     List<LabelEntity> getAllLabels();
+    List<LabelEntity> getUsedLabels();
 
 }

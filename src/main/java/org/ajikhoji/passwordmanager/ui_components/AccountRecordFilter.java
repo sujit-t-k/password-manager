@@ -46,7 +46,7 @@ public class AccountRecordFilter extends VBox {
 
         gpAdvancedFilter.add(new Label("Label:"), 0, 2);
         final ChoiceBox<LabelEntity> cbxLabelFilter = new ChoiceBox<>();
-        cbxLabelFilter.setConverter(new StringConverter<LabelEntity>() {
+        cbxLabelFilter.setConverter(new StringConverter<>() {
             @Override
             public String toString(LabelEntity object) {
                 return object.getLabelName();
@@ -79,8 +79,8 @@ public class AccountRecordFilter extends VBox {
         getChildren().addAll(tfGlobalSearch, advancedFilter);
 
         final LabelService labelService = DbConfig.getLabelService();
-        final List<LabelEntity> allLabels = labelService.getAllLabels();
-        allLabels.add(LabelEntity.NULL_LABEL);
+        final List<LabelEntity> allLabels = labelService.getUsedLabels();
+        allLabels.addFirst(LabelEntity.NULL_LABEL);
         cbxLabelFilter.setItems(FXCollections.observableArrayList(allLabels));
         cbxLabelFilter.getSelectionModel().select(LabelEntity.NULL_LABEL);
 

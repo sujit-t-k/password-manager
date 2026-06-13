@@ -22,16 +22,16 @@ public class FieldEditor {
 
     //to be utilized for requesting new field key-value pair inclusion
     FieldEditor(final Set<String> allKeys, final BiConsumer<String, String> onSuccessfulNamingValidation) {
-        this(allKeys, "", "", "Add new field", onSuccessfulNamingValidation);
+        this(allKeys, "", "", "Add new field", "Add", onSuccessfulNamingValidation);
     }
 
     //to be used for editing existing field key-value pair
     FieldEditor(final Set<String> allKeys, final String currKey, final String currValue, final BiConsumer<String, String> onSuccessfulNamingValidation) {
-        this(allKeys, currKey, currValue, "Edit field property", onSuccessfulNamingValidation);
+        this(allKeys, currKey, currValue, "Edit field property", "Save", onSuccessfulNamingValidation);
     }
 
     //base constructor for both add new field and edit existing field.
-    private FieldEditor(final Set<String> allKeys, final String currKey, final String currValue, final String windowTitle, final BiConsumer<String, String> onSuccessfulNamingValidation) {
+    private FieldEditor(final Set<String> allKeys, final String currKey, final String currValue, final String windowTitle, final String btnText, final BiConsumer<String, String> onSuccessfulNamingValidation) {
         final Stage st = new Stage();
         st.setResizable(false);
         st.setTitle(windowTitle);
@@ -61,7 +61,7 @@ public class FieldEditor {
         final HBox hbxError = new HBox(lblError);
         hbxError.setAlignment(Pos.CENTER);
         gp.add(hbxError, 0, 2, 2, 1);
-        final Button btnAdd = new Button("Add");
+        final Button btnAdd = new Button(btnText);
         final Button btnCancel = new Button("Cancel");
         final HBox hbx = new HBox(18.0D, btnCancel, btnAdd);
         hbx.setAlignment(Pos.CENTER);

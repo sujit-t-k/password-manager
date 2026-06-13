@@ -77,4 +77,30 @@ public class HsqlLabelRepo implements LabelRepo {
         return allLabels;
     }
 
+    @Override
+    public List<LabelEntity> getUsedLabels() {
+        final List<LabelEntity> allLabels = new ArrayList<>();
+        try {
+            final String queryRetrieveAllAccountInfo = """            
+                SELECT DISTINCT l.label_id, l.label_name
+                FROM Labels l
+                JOIN Accounts a
+                ON a.label_id = l.label_id
+                ORDER BY l.label_name
+            """;
+            final PreparedStatement psRetrieve = conn.prepareStatement(queryRetrieveAllAccountInfo);
+
+            final ResultSet rs = psRetrieve.executeQuery();
+            while(rs.next()) {
+                final long labelId = rs.getLong("label_id");
+                final String labelName = rs.getString("label_name");
+                allLabels.add(new LabelEntity(labelId, labelName));
+            }
+        } catch (Exception e) {
+            throw new DatabaseOperationFailureException(e.getMessage());
+        }
+
+        return allLabels;
+    }
+
 }
