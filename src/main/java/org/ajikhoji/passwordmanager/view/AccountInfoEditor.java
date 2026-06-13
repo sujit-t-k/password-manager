@@ -11,7 +11,7 @@ import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.model.LabelEntity;
 import org.ajikhoji.passwordmanager.service.LabelService;
 import org.ajikhoji.passwordmanager.ui_components.AccountCustomFieldEditor;
-import org.ajikhoji.passwordmanager.ui_components.NewLabelNamingWindow;
+import org.ajikhoji.passwordmanager.ui_components.LabelNamingWindow;
 import org.ajikhoji.passwordmanager.util.Utility;
 
 public class AccountInfoEditor extends BorderPane {
@@ -45,7 +45,11 @@ public class AccountInfoEditor extends BorderPane {
         cbxLabel.getSelectionModel().select(DbConfig.getLabelService().getLabelEntityByName(LabelEntity.DEFAULT_LABEL_NAME));
         final Button btnAddNewLabel = new Button("Add Label");
         btnAddNewLabel.setOnAction(e -> {
-            new NewLabelNamingWindow(
+            if(DbConfig.getLabelService().getUsedLabels().size() == LabelEntity.MAX_LABEL_CAP) {
+                Utility.showErrorAlert("Max labels reached", "Delete existing label to add new one");
+                return;
+            }
+            LabelNamingWindow.showNewLabelNamingWindow(
                 (newLabelName, window) -> {
                     try {
                         final LabelService ls = DbConfig.getLabelService();

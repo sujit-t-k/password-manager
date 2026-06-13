@@ -4,6 +4,7 @@ module org.ajikhoji.passwordmanager {
     requires com.opencsv;
 
     opens org.ajikhoji.passwordmanager to javafx.base;
+    opens org.ajikhoji.passwordmanager.dto to javafx.base;
     opens org.ajikhoji.passwordmanager.model to javafx.base;
     exports org.ajikhoji.passwordmanager;
 }

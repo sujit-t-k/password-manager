@@ -1,5 +1,7 @@
 package org.ajikhoji.passwordmanager.service;
 
+import org.ajikhoji.passwordmanager.dto.LabelUsage;
+import org.ajikhoji.passwordmanager.exception.DatabaseOperationFailureException;
 import org.ajikhoji.passwordmanager.exception.EntityNotExistException;
 import org.ajikhoji.passwordmanager.exception.ValidationException;
 import org.ajikhoji.passwordmanager.model.LabelEntity;
@@ -34,12 +36,20 @@ public class LabelServiceImpl implements LabelService {
     }
 
     @Override
-    public void deleteLabel(final LabelEntity entityToDelete) {
+    public void updateLabel(final LabelEntity entity) {
+        repo.updateLabel(entity);
+        idAndName.remove(entity.getLabelId(), idAndName.getSecondValueByFirstKey(entity.getLabelId()));
+        idAndName.put(entity.getLabelId(), entity.getLabelName());
+        idToEntity.put(entity.getLabelId(), entity);
+    }
+
+    @Override
+    public void deleteLabel(final LabelEntity entityToDelete, final LabelEntity replacementLabel) {
         final LabelEntity toDelete = idToEntity.get(entityToDelete.getLabelId());
         if(toDelete == null || !toDelete.equals(entityToDelete)) {
             throw new ValidationException(String.format("Label with id %d and info %s does not exists", entityToDelete.getLabelId(), entityToDelete.getLabelName()));
         }
-        repo.deleteLabel(entityToDelete);
+        repo.deleteLabel(entityToDelete, replacementLabel);
         idAndName.remove(entityToDelete.getLabelId(), entityToDelete.getLabelName());
     }
 
@@ -58,6 +68,11 @@ public class LabelServiceImpl implements LabelService {
     @Override
     public List<LabelEntity> getUsedLabels() {
         return repo.getUsedLabels();
+    }
+
+    @Override
+    public List<LabelUsage> getLabelUsageStatistics() {
+        return repo.getLabelUsageStatistics();
     }
 
     @Override

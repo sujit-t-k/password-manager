@@ -26,12 +26,14 @@ import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.exception.DatabaseOperationFailureException;
 import org.ajikhoji.passwordmanager.exception.ValidationException;
+import org.ajikhoji.passwordmanager.model.LabelEntity;
 import org.ajikhoji.passwordmanager.repository.OpenLinkButtonActionCustomizable;
 import org.ajikhoji.passwordmanager.repository.TableFieldsPreferenceRememberable;
 import org.ajikhoji.passwordmanager.security.AesEncryptionService;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.security.KeyManager;
 import org.ajikhoji.passwordmanager.service.SettingService;
+import org.ajikhoji.passwordmanager.ui_components.LabelManager;
 import org.ajikhoji.passwordmanager.util.ClipboardCopyUtil;
 import org.ajikhoji.passwordmanager.util.HashUtil;
 import org.ajikhoji.passwordmanager.util.SaltUtil;
@@ -115,7 +117,20 @@ public class SettingsScreen extends Pane {
             new VBox(3.0D, lblFieldOrder, new VBox(6.0D, rbDefault, rbCustom)),
             new VBox(3.0D, lblLink, new VBox(6.0D, rbOpen, rbCopyAccId, rbCopyPass))
         );
-        
+
+        //labels sections
+        final LabelManager lblManager = new LabelManager();
+        final Label lblTitleLabels = new Label();
+        lblTitleLabels.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        final VBox vbxLabel = new VBox(4.0D, lblTitleLabels, lblManager);
+        vbxLabel.setStyle("-fx-padding: 20px 0 0 0;");
+
+        lblManager.setOnLabelCountChange(updatedCount -> {
+            lblManager.setPrefHeight(Math.min(500.0D, 55.0D * (updatedCount + 1)));
+            lblTitleLabels.setText(String.format("Labels (%d/%d)", updatedCount, LabelEntity.MAX_LABEL_CAP));
+        });
+        lblManager.triggerLabelCountChangeEvent();
+
         //personal section where app password, hint and username can be changed
         final GridPane gpSecurity = new GridPane(8.0D, 16.0D);
         gpSecurity.setStyle("-fx-padding: 20px 0 0 0;");
@@ -180,12 +195,13 @@ public class SettingsScreen extends Pane {
         final Button btnExport = new Button("Export as CSV");
         gpData.addRow(2, new Label("Exports all stored credential within a single CSV file"), btnExport);
 
-        vbxContent.getChildren().addAll(vbxGeneral, gpSecurity, gpData);
+        vbxContent.getChildren().addAll(vbxGeneral, vbxLabel, gpSecurity, gpData);
         sp.setContent(vbxContent);
         getChildren().add(sp);
         sp.prefWidthProperty().bind(widthProperty());
         sp.prefHeightProperty().bind(heightProperty());
 
+        //data population and functionalities of all section starts from here
         final SettingService settingService = DbConfig.getSettingService();
         lblHintValue.setText(settingService.getHint());
         lblUsernameValue.setText(settingService.getUserName());
