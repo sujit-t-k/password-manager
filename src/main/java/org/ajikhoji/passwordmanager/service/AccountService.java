@@ -11,4 +11,10 @@ public interface AccountService {
     void updateAccountCredential(final AccountEntity originalEntity, final AccountEntity updatedEntity);
     List<AccountEntity> getAllAccountCredential();
 
+    //dashboard utility methods
+    List<AccountEntity> getKMostUsedAccounts(int k);
+    List<AccountEntity> getKRecentModifiedAccounts(int k);
+    List<AccountEntity> getKRecentUsedAccounts(int k);
+    List<AccountEntity> getAccountsAddedThisMonth();
+
 }

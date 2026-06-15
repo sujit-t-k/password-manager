@@ -11,4 +11,10 @@ public interface AccountRepo {
     List<AccountEntity> getAllAccountCredential();
     void updateAccountCredential(AccountEntity updatedEntity);
 
+    //dashboard utility methods
+    List<AccountEntity> getKMostUsedAccounts(int k);
+    List<AccountEntity> getKRecentModifiedAccounts(int k);
+    List<AccountEntity> getKRecentUsedAccounts(int k);
+    List<AccountEntity> getAccountsAddedThisMonth();
+
 }

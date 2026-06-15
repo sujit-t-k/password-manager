@@ -66,4 +66,33 @@ public class AccountServiceImpl implements AccountService {
         return allEntities;
     }
 
+    @Override
+    public List<AccountEntity> getKMostUsedAccounts(int k) {
+        if(k <= 0) {
+            throw new ValidationException("Number of accounts required should be positive");
+        }
+        return repo.getKMostUsedAccounts(k);
+    }
+
+    @Override
+    public List<AccountEntity> getKRecentModifiedAccounts(int k) {
+        if(k <= 0) {
+            throw new ValidationException("Number of accounts required should be positive");
+        }
+        return repo.getKRecentModifiedAccounts(k);
+    }
+
+    @Override
+    public List<AccountEntity> getKRecentUsedAccounts(int k) {
+        if(k <= 0) {
+            throw new ValidationException("Number of accounts required should be positive");
+        }
+        return repo.getKRecentUsedAccounts(k);
+    }
+
+    @Override
+    public List<AccountEntity> getAccountsAddedThisMonth() {
+        return repo.getAccountsAddedThisMonth();
+    }
+
 }
