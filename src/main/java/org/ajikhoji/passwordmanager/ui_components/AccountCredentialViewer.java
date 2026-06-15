@@ -4,6 +4,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -45,6 +46,52 @@ public class AccountCredentialViewer extends TableView<AccountEntity> {
         setItems(FXCollections.observableArrayList(allAccounts));
         setEditable(false);
         setPlaceholder(new Label("No records available"));
+        setSelectionModel(new TableViewSelectionModel<>(this) {
+            @Override
+            public ObservableList<TablePosition> getSelectedCells() {
+                return FXCollections.observableArrayList();
+            }
+
+            @Override
+            public boolean isSelected(int row, TableColumn<AccountEntity, ?> column) {
+                return false;
+            }
+
+            @Override
+            public void select(int row, TableColumn<AccountEntity, ?> column) {
+
+            }
+
+            @Override
+            public void clearAndSelect(int row, TableColumn<AccountEntity, ?> column) {
+
+            }
+
+            @Override
+            public void clearSelection(int row, TableColumn<AccountEntity, ?> column) {
+
+            }
+
+            @Override
+            public void selectLeftCell() {
+
+            }
+
+            @Override
+            public void selectRightCell() {
+
+            }
+
+            @Override
+            public void selectAboveCell() {
+
+            }
+
+            @Override
+            public void selectBelowCell() {
+
+            }
+        });
 
         final TableColumn<AccountEntity, String> tcAccName = new TableColumn<>("Account ID/Name");
         final TableColumn<AccountEntity, String> tcAccPass = new TableColumn<>("Password");

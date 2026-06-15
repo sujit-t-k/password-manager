@@ -12,6 +12,7 @@ public class DbConfig {
     private static AccountCustomFieldService accountCustomFieldService;
     private static LabelService labelService;
     private static SettingService settingService;
+    private static DashboardService dashboardService;
 
     public static void initDb() {
         if(db == null) {
@@ -29,6 +30,8 @@ public class DbConfig {
 
             final SettingRepo settingRepo = new HsqlSettingRepo(c);
             settingService = new SettingServiceImpl(settingRepo);
+
+            dashboardService = new DashboardServiceImpl(accountService, labelService);
         }
     }
 
@@ -50,6 +53,10 @@ public class DbConfig {
 
     public static SettingService getSettingService() {
         return settingService;
+    }
+
+    public static DashboardService getDashboardService() {
+        return dashboardService;
     }
 
 }

@@ -143,6 +143,7 @@ public class HsqlAccountRepo implements AccountRepo {
             final String queryRetrieveMostUsedAccounts =
                 """
                     SELECT * FROM Accounts
+                    WHERE usage_count > 0
                     ORDER BY usage_count DESC
                     LIMIT ?;
                 """;
@@ -217,7 +218,8 @@ public class HsqlAccountRepo implements AccountRepo {
             final String queryRecentUsedAccounts =
                     """
                         SELECT * FROM Accounts
-                        WHERE MONTH(created_at) = ? AND YEAR(created_at) = ?;
+                        WHERE MONTH(created_at) = ? AND YEAR(created_at) = ?
+                        ORDER BY created_at DESC;
                     """;
             final PreparedStatement psRetrieve = conn.prepareStatement(queryRecentUsedAccounts);
             final LocalDate currDate = LocalDate.now();

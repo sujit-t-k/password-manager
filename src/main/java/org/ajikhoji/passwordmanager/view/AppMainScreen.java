@@ -40,6 +40,9 @@ public class AppMainScreen {
                 case SETTING -> {
                     AppConfig.setCurrentDisplayPage(new SettingsScreen());
                 }
+                case DASHBOARD -> {
+                    AppConfig.setCurrentDisplayPage(new DashboardScreen());
+                }
             }
         });
     }

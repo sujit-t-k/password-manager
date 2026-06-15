@@ -41,12 +41,18 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    public int getTotalLabelsCount() {
+        return Math.max(0, labelService.getAllLabels().size() - 1);
+    }
+
+    @Override
     public List<LabelUsage> getKMostUsedLabels(final int labelCountCap) {
         final List<LabelUsage> labelStats = labelService.getLabelUsageStatistics();
-        if(labelStats.size() > labelCountCap) {
-            return labelStats.subList(0, labelCountCap);
+        int idx = 0;
+        while(idx < labelCountCap && labelStats.get(idx).getUsageCount() > 0) {
+            ++idx;
         }
-        return labelStats;
+        return labelStats.subList(0, idx);
     }
 
 }

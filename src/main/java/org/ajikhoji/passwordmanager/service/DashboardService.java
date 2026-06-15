@@ -12,6 +12,7 @@ public interface DashboardService {
     List<AccountEntity> getKRecentlyModifiedAccounts(int accountCountCap);
     List<AccountEntity> getKRecentlyUsedAccounts(int accountCountCap);
     int getTotalAccountCount();
+    int getTotalLabelsCount();
     List<LabelUsage> getKMostUsedLabels(int labelCountCap);
 
 }
