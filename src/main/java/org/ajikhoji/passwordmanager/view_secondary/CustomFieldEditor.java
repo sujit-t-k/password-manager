@@ -1,4 +1,4 @@
-package org.ajikhoji.passwordmanager.ui_components;
+package org.ajikhoji.passwordmanager.view_secondary;
 
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
@@ -18,20 +18,20 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 
 // a dialog box like window to request for values for new field pair or modification of existing field pair
-public class FieldEditor {
+public class CustomFieldEditor {
 
     //to be utilized for requesting new field key-value pair inclusion
-    FieldEditor(final Set<String> allKeys, final BiConsumer<String, String> onSuccessfulNamingValidation) {
+    public CustomFieldEditor(final Set<String> allKeys, final BiConsumer<String, String> onSuccessfulNamingValidation) {
         this(allKeys, "", "", "Add new field", "Add", onSuccessfulNamingValidation);
     }
 
     //to be used for editing existing field key-value pair
-    FieldEditor(final Set<String> allKeys, final String currKey, final String currValue, final BiConsumer<String, String> onSuccessfulNamingValidation) {
+    public CustomFieldEditor(final Set<String> allKeys, final String currKey, final String currValue, final BiConsumer<String, String> onSuccessfulNamingValidation) {
         this(allKeys, currKey, currValue, "Edit field property", "Save", onSuccessfulNamingValidation);
     }
 
     //base constructor for both add new field and edit existing field.
-    private FieldEditor(final Set<String> allKeys, final String currKey, final String currValue, final String windowTitle, final String btnText, final BiConsumer<String, String> onSuccessfulNamingValidation) {
+    private CustomFieldEditor(final Set<String> allKeys, final String currKey, final String currValue, final String windowTitle, final String btnText, final BiConsumer<String, String> onSuccessfulNamingValidation) {
         final Stage st = new Stage();
         st.setResizable(false);
         st.setTitle(windowTitle);

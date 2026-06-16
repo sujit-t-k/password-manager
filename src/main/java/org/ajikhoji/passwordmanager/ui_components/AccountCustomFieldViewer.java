@@ -7,12 +7,12 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Font;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.model.AccountCustomFieldEntity;
 import org.ajikhoji.passwordmanager.model.AccountEntity;
 import org.ajikhoji.passwordmanager.util.Utility;
+import org.ajikhoji.passwordmanager.view_secondary.CustomFieldEditor;
 
 import java.util.List;
 import java.util.Set;
@@ -69,7 +69,7 @@ public class AccountCustomFieldViewer extends TableView<AccountCustomFieldEntity
                     if(idx > -1) {
                         final AccountCustomFieldEntity data = AccountCustomFieldViewer.this.getItems().get(idx);
                         btnEdit.setOnAction(event -> {
-                            new FieldEditor(
+                            new CustomFieldEditor(
                                     getAllFieldNames(),
                                     data.getFieldName(),
                                     data.getFieldValue(),

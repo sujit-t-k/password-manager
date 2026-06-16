@@ -11,7 +11,7 @@ import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.model.LabelEntity;
 import org.ajikhoji.passwordmanager.service.LabelService;
 import org.ajikhoji.passwordmanager.ui_components.AccountCustomFieldEditor;
-import org.ajikhoji.passwordmanager.ui_components.LabelNamingWindow;
+import org.ajikhoji.passwordmanager.view_secondary.LabelNamingWindow;
 import org.ajikhoji.passwordmanager.util.Utility;
 
 public class AccountInfoEditor extends BorderPane {

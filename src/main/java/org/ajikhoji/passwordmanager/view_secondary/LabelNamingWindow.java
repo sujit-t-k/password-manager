@@ -1,4 +1,4 @@
-package org.ajikhoji.passwordmanager.ui_components;
+package org.ajikhoji.passwordmanager.view_secondary;
 
 import javafx.collections.FXCollections;
 import javafx.geometry.HPos;

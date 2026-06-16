@@ -194,8 +194,8 @@
     -fx-text-fill: #BEBEBE;
     -fx-border-color: #969696;
     -fx-border-width: 0.4px;
-    -fx-highlight-fill: #4D3DF7;
-    -fx-highlight-text-fill: #0E0B2E;
+    -fx-highlight-fill: #f3c15b;
+    -fx-highlight-text-fill: #060140;
 }
 .text-area .scroll-pane {
     -fx-background-color: transparent;
@@ -713,6 +713,10 @@
 /* ===== Table Rows ===== */
 .table-row-cell {
     -fx-background-color: transparent;
+
+}
+.table-row-cell .text {
+    -fx-fill: #b6b4bf;
 }
 
 .table-row-cell:odd {
@@ -730,11 +734,11 @@
 
 /* ===== Selected Row ===== */
 .table-row-cell:selected {
-    -fx-background-color: #5c8cff;
+    -fx-background-color: #38005f;
 }
 
 .table-row-cell:selected .text {
-    -fx-fill: white;
+    -fx-fill: #c576fb;
 }
 
 /* ===== Table Cells ===== */
@@ -895,4 +899,8 @@
 
 .info-scroll > .viewport {
     -fx-background-color: #141416;
+}
+
+.primary-text-color-for-label {
+    -fx-text-fill: #b23afd;
 }

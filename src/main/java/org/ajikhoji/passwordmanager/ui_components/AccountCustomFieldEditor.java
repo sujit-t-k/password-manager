@@ -6,6 +6,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.ajikhoji.passwordmanager.model.AccountCustomFieldEntity;
+import org.ajikhoji.passwordmanager.view_secondary.CustomFieldEditor;
+
 import java.util.List;
 
 public class AccountCustomFieldEditor extends VBox {
@@ -25,7 +27,7 @@ public class AccountCustomFieldEditor extends VBox {
         getChildren().addAll(hbxControls, viewer);
 
         btnAdd.setOnAction(e -> {
-            new FieldEditor(
+            new CustomFieldEditor(
                 viewer.getAllFieldNames(),
                 viewer::addNewCustomField
             );

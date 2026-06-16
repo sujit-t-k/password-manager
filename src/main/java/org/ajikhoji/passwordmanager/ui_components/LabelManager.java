@@ -9,7 +9,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.TextAlignment;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
@@ -17,8 +16,8 @@ import org.ajikhoji.passwordmanager.dto.LabelUsage;
 import org.ajikhoji.passwordmanager.model.LabelEntity;
 import org.ajikhoji.passwordmanager.service.LabelService;
 import org.ajikhoji.passwordmanager.util.Utility;
+import org.ajikhoji.passwordmanager.view_secondary.LabelNamingWindow;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 public class LabelManager extends TableView<LabelUsage> {
@@ -44,7 +43,6 @@ public class LabelManager extends TableView<LabelUsage> {
         getColumns().add(tcLabelName);
         getColumns().add(tcUsageCount);
         getColumns().add(tcActions);
-
 
         tcUsageCount.setCellFactory(cellFactory -> new TableCell<>(){
             @Override

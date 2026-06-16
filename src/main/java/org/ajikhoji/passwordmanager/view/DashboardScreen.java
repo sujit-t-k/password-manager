@@ -37,15 +37,14 @@ public class DashboardScreen extends Pane {
         vbxParent = new VBox();
         vbxParent.setStyle("-fx-padding: 20px;");
 
-        final Label lblGreeting = new Label(
-             String.format(
-                  "%s %s",
-                  Math.random() > 0.66D ? "Welcome" : Math.random() < 0.33D ? "Hello" : "Greetings,",
-                  DbConfig.getSettingService().getUserName()
-             )
-        );
-        lblGreeting.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
-        vbxParent.getChildren().add(lblGreeting);
+        final Label lblGreeting = new Label(Math.random() > 0.66D ? "Welcome, " : Math.random() < 0.33D ? "Hello, " : "Greetings, ");
+        lblGreeting.setStyle("-fx-font-size: 28px; -fx-font-weight: bold;");
+        final Label lblUsername = new Label(DbConfig.getSettingService().getUserName());
+        lblUsername.setStyle("-fx-font-size: 28px; -fx-font-weight: bold;");
+        lblUsername.getStyleClass().add("primary-text-color-for-label");
+        final HBox hbxGreeting = new HBox(0.0D, lblGreeting, lblUsername);
+        hbxGreeting.setAlignment(Pos.CENTER_LEFT);
+        vbxParent.getChildren().add(hbxGreeting);
 
         sp.setContent(vbxParent);
         getChildren().add(sp);
@@ -68,6 +67,7 @@ public class DashboardScreen extends Pane {
 
         final Label lblAccountsCount = new Label(String.valueOf(dashboardService.getTotalAccountCount()));
         lblAccountsCount.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 6px 0 0 0;");
+        lblAccountsCount.getStyleClass().add("primary-text-color-for-label");
         final Label lblAccounts = new Label("Total Accounts");
         lblAccounts.setAlignment(Pos.CENTER);
         lblAccounts.setTextAlignment(TextAlignment.CENTER);
@@ -79,6 +79,7 @@ public class DashboardScreen extends Pane {
 
         final Label lblAccountsAddedCount = new Label(String.valueOf(dashboardService.getAccountsAddedThisMonth().size()));
         lblAccountsAddedCount.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 6px 0 0 0;");
+        lblAccountsAddedCount.getStyleClass().add("primary-text-color-for-label");
         final Label lblAccountsAdded = new Label("Accounts added this month");
         lblAccountsAdded.setWrapText(true);
         lblAccountsAdded.setAlignment(Pos.CENTER);
@@ -91,6 +92,7 @@ public class DashboardScreen extends Pane {
 
         final Label lblLabelsCount = new Label(String.valueOf(dashboardService.getTotalLabelsCount()));
         lblLabelsCount.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 6px 0 0 0;");
+        lblLabelsCount.getStyleClass().add("primary-text-color-for-label");
         final Label lblLabels = new Label("Total Labels");
         lblLabels.setAlignment(Pos.CENTER);
         lblLabels.setTextAlignment(TextAlignment.CENTER);
