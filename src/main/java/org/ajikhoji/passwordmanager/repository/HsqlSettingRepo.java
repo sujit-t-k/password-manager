@@ -380,4 +380,43 @@ public class HsqlSettingRepo implements SettingRepo {
         }
     }
 
+    @Override
+    public void saveDefaultScreenOnAppLaunch(String screenName) {
+        if(!containsRecord("DEFAULT_SCREEN_ON_APP_LAUNCH")) {
+            try {
+                final String strQuery = "INSERT INTO AppSettings (setting_key, setting_value) VALUES ('DEFAULT_SCREEN_ON_APP_LAUNCH', ?)";
+                final PreparedStatement psInsert = conn.prepareStatement(strQuery);
+                psInsert.setString(1, screenName);
+                psInsert.executeUpdate();
+            } catch (Exception e) {
+                throw new DatabaseOperationFailureException(e.getMessage());
+            }
+            return;
+        }
+        try {
+            final String strQuery = "UPDATE AppSettings SET setting_value = ? WHERE setting_key = 'DEFAULT_SCREEN_ON_APP_LAUNCH'";
+            final PreparedStatement psInsert = conn.prepareStatement(strQuery);
+            psInsert.setString(1, screenName);
+            psInsert.executeUpdate();
+        } catch (Exception e) {
+            throw new DatabaseOperationFailureException(e.getMessage());
+        }
+    }
+
+    @Override
+    public String getDefaultScreenOnAppLaunch() {
+        try {
+            final String queryRetrieve = "SELECT setting_value FROM AppSettings WHERE setting_key = 'DEFAULT_SCREEN_ON_APP_LAUNCH'";
+            final PreparedStatement ps = conn.prepareStatement(queryRetrieve);
+
+            final ResultSet rs = ps.executeQuery();
+            if(rs.next()) {
+                return rs.getString("setting_value");
+            } else {
+                throw new DatabaseOperationFailureException("No record with name DEFAULT_SCREEN_ON_APP_LAUNCH found in AppSettings relation");
+            }
+        } catch (Exception e) {
+            throw new DatabaseOperationFailureException(e.getMessage());
+        }
+    }
 }

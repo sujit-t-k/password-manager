@@ -1,5 +1,6 @@
 package org.ajikhoji.passwordmanager.service;
 
+import org.ajikhoji.passwordmanager.config.SideBarItem;
 import org.ajikhoji.passwordmanager.repository.SettingRepo;
 import org.ajikhoji.passwordmanager.repository.TableFieldsPreferenceRememberable;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
@@ -129,6 +130,20 @@ public class SettingServiceImpl implements SettingService {
     @Override
     public void clearAccountCredentialData() {
         repo.clearAccountCredentialData();
+    }
+
+    @Override
+    public void saveDefaultScreenOnAppLaunch(final String screenName) {
+        repo.saveDefaultScreenOnAppLaunch(screenName);
+    }
+
+    @Override
+    public String getDefaultScreenOnAppLaunch() {
+        try {
+            return repo.getDefaultScreenOnAppLaunch();
+        } catch (final Exception e) {
+            return SideBarItem.VIEW_ALL.name();
+        }
     }
 
 }

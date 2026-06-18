@@ -8,6 +8,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import org.ajikhoji.passwordmanager.config.AppConfig;
+import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.config.SideBarItem;
 import org.ajikhoji.passwordmanager.ui_components.AppFrame;
 import org.ajikhoji.passwordmanager.viewmodel.AddNewAccountViewModel;
@@ -26,6 +27,13 @@ public class AppMainScreen {
         lblAppTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 0 0 14px;");
         hbxTitleBar.getChildren().add(lblAppTitle);
         AppConfig.getPrimaryStage().setTitle(lblAppTitle.getText());
+
+        //load user's default screen preference
+        try {
+            AppConfig.setDefaultSideMenuItem(SideBarItem.valueOf(DbConfig.getSettingService().getDefaultScreenOnAppLaunch()));
+        } catch (final Exception e) {
+            AppConfig.setDefaultSideMenuItem(SideBarItem.VIEW_ALL);
+        }
 
         addAppSideBar(
             AppConfig.getAppFrame(),

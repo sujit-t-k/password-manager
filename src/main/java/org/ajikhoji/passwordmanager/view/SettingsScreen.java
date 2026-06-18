@@ -24,6 +24,7 @@ import org.ajikhoji.passwordmanager.Launcher;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
+import org.ajikhoji.passwordmanager.config.SideBarItem;
 import org.ajikhoji.passwordmanager.exception.DatabaseOperationFailureException;
 import org.ajikhoji.passwordmanager.exception.ValidationException;
 import org.ajikhoji.passwordmanager.model.LabelEntity;
@@ -111,11 +112,30 @@ public class SettingsScreen extends Pane {
             }
         });
 
+        final Label lblDefaultScreen = new Label("Default screen to show up after app launch");
+        lblDefaultScreen.setWrapText(true);
+        lblDefaultScreen.setStyle("-fx-font-weight: bold; -fx-padding: 6px 0 8px 0;");
+        final RadioButton rbViewAll = new RadioButton("View all credentials");
+        rbViewAll.setWrapText(true);
+        final RadioButton rbDashboard = new RadioButton("Dashboard");
+        rbDashboard.setWrapText(true);
+        rbDashboard.addEventFilter(MouseEvent.ANY, e -> {
+            if(rbDashboard.isSelected()) {
+                e.consume();
+            }
+        });
+        rbViewAll.addEventFilter(MouseEvent.ANY, e -> {
+            if(rbViewAll.isSelected()) {
+                e.consume();
+            }
+        });
+
         final VBox vbxGeneral = new VBox(18.0D,
             lblTitleGeneral,
             new VBox(3.0D, lblViewFields, fpViewFields),
             new VBox(3.0D, lblFieldOrder, new VBox(6.0D, rbDefault, rbCustom)),
-            new VBox(3.0D, lblLink, new VBox(6.0D, rbOpen, rbCopyAccId, rbCopyPass))
+            new VBox(3.0D, lblLink, new VBox(6.0D, rbOpen, rbCopyAccId, rbCopyPass)),
+            new VBox(3.0D, lblDefaultScreen, new VBox(6.0D, rbDashboard, rbViewAll))
         );
 
         //labels sections
@@ -289,6 +309,22 @@ public class SettingsScreen extends Pane {
         rbOpen.setSelected(savedOption.equals(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER));
         rbCopyAccId.setSelected(savedOption.equals(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER_AND_COPY_ACC_ID));
         rbCopyPass.setSelected(savedOption.equals(OpenLinkButtonActionCustomizable.LinkActionOption.OPEN_IN_BROWSER_AND_COPY_ACC_PASS));
+
+        rbDashboard.setOnAction(e -> {
+            rbDashboard.setSelected(true);
+            rbViewAll.setSelected(false);
+            settingService.saveDefaultScreenOnAppLaunch(SideBarItem.DASHBOARD.name());
+        });
+        rbViewAll.setOnAction(e -> {
+            rbViewAll.setSelected(true);
+            rbDashboard.setSelected(false);
+            settingService.saveDefaultScreenOnAppLaunch(SideBarItem.VIEW_ALL.name());
+        });
+        if(settingService.getDefaultScreenOnAppLaunch().equals(SideBarItem.DASHBOARD.name())) {
+            rbDashboard.setSelected(true);
+        } else {
+            rbViewAll.setSelected(true);
+        }
     }
 
     private boolean isPasswordCorrect(final String plainPassword) {
