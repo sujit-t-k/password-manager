@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class AppResources {
 
-    public Image imgEyeOpened, imgEyeClosed, imgCopy, imgCopied, imgEdit, imgDelete, imgLinkOpen, imgLinkActivated, imgWarning, imgInfo;
+    public Image imgEyeOpened, imgEyeClosed, imgCopy, imgCopied, imgEdit, imgDelete, imgLinkOpen, imgLinkActivated, imgWarning, imgInfo, imgAppIcon;
 
     private static AppResources ar;
     private AppResources() {
@@ -21,6 +21,7 @@ public class AppResources {
         this.imgLinkActivated = new Image(Objects.requireNonNull(AppStartup.class.getResource("image/link_opened.png")).toExternalForm());
         this.imgWarning = new Image(Objects.requireNonNull(AppStartup.class.getResource("image/warn.png")).toExternalForm());
         this.imgInfo = new Image(Objects.requireNonNull(AppStartup.class.getResource("image/info.png")).toExternalForm());
+        this.imgAppIcon = new Image(Objects.requireNonNull(AppStartup.class.getResource("image/ajk_pwd_mgr_app_ico.png")).toExternalForm());
     }
 
     public static AppResources getInstance() {

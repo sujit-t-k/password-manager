@@ -37,14 +37,7 @@ public class AppSetupScreen {
     }
 
     public static void init(final Consumer<String[]> onSuccessfulValidation) {
-        //setting up app title bar
-        final HBox hbxTitleBar = AppConfig.getAppFrame().getTitleBar();
-        hbxTitleBar.setAlignment(Pos.CENTER_LEFT);
-        final Label lblAppTitle = new Label(String.format("Setup: %s", AppConfig.getAppName()));
-        lblAppTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 0 0 14px;");
-        hbxTitleBar.getChildren().add(lblAppTitle);
-        AppConfig.getPrimaryStage().setTitle(lblAppTitle.getText());
-
+        Utility.setupAppTitleBar();
         new AppSetupScreen(onSuccessfulValidation);
     }
 

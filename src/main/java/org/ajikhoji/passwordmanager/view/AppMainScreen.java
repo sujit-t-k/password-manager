@@ -4,6 +4,7 @@ import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -11,6 +12,7 @@ import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.config.SideBarItem;
 import org.ajikhoji.passwordmanager.ui_components.AppFrame;
+import org.ajikhoji.passwordmanager.util.Utility;
 import org.ajikhoji.passwordmanager.viewmodel.AddNewAccountViewModel;
 
 import java.util.function.Consumer;
@@ -19,14 +21,7 @@ import java.util.function.Consumer;
 public class AppMainScreen {
 
     public static void init() {
-        //setting up app title bar
-        final HBox hbxTitleBar = AppConfig.getAppFrame().getTitleBar();
-        hbxTitleBar.getChildren().clear();
-        hbxTitleBar.setAlignment(Pos.CENTER_LEFT);
-        final Label lblAppTitle = new Label(AppConfig.getAppName());
-        lblAppTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 0 0 14px;");
-        hbxTitleBar.getChildren().add(lblAppTitle);
-        AppConfig.getPrimaryStage().setTitle(lblAppTitle.getText());
+        Utility.setupAppTitleBar();
 
         //load user's default screen preference
         try {
@@ -50,6 +45,9 @@ public class AppMainScreen {
                 }
                 case DASHBOARD -> {
                     AppConfig.setCurrentDisplayPage(new DashboardScreen());
+                }
+                case ABOUT -> {
+                    AppConfig.setCurrentDisplayPage(new AboutScreen());
                 }
             }
         });

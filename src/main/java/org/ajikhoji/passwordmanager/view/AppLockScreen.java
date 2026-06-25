@@ -3,6 +3,7 @@ package org.ajikhoji.passwordmanager.view;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -13,14 +14,7 @@ import java.util.function.Function;
 public class AppLockScreen {
 
     public static void init(final String hint, final Function<String, Boolean> onLoginAttempt) {
-        //setting up app title bar
-        final HBox hbxTitleBar = AppConfig.getAppFrame().getTitleBar();
-        hbxTitleBar.getChildren().clear();
-        hbxTitleBar.setAlignment(Pos.CENTER_LEFT);
-        final Label lblAppTitle = new Label(AppConfig.getAppName());
-        lblAppTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 0 0 14px;");
-        hbxTitleBar.getChildren().add(lblAppTitle);
-        AppConfig.getPrimaryStage().setTitle(lblAppTitle.getText());
+        Utility.setupAppTitleBar();
 
         final VBox vbxParent = new VBox(AppConfig.getScreenHeight() * 0.1D);
         vbxParent.setAlignment(Pos.CENTER);

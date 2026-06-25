@@ -4,9 +4,11 @@ import com.opencsv.CSVWriter;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -383,6 +385,23 @@ public class Utility {
             pb.setProgress(1.0D);
         } catch (final Exception e) {
             throw new RuntimeException(String.format("Export operation aborted: %s", e.getMessage()));
+        }
+    }
+
+    public static void setupAppTitleBar() {
+        final HBox hbxTitleBar = AppConfig.getAppFrame().getTitleBar();
+        if(hbxTitleBar.getChildren().isEmpty()) {
+            hbxTitleBar.setStyle("-fx-padding: 0 0 0 10px;");
+            hbxTitleBar.getChildren().clear();
+            hbxTitleBar.setAlignment(Pos.CENTER_LEFT);
+            final Label lblAppTitle = new Label(AppConfig.getAppName());
+            lblAppTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 0 0 4px;");
+            final ImageView ivAppIcon = new ImageView(AppConfig.getAppResources().imgAppIcon);
+            ivAppIcon.setSmooth(true);
+            ivAppIcon.setFitHeight(30.0D);
+            ivAppIcon.setPreserveRatio(true);
+            hbxTitleBar.getChildren().addAll(ivAppIcon, lblAppTitle);
+            AppConfig.getPrimaryStage().setTitle(lblAppTitle.getText());
         }
     }
 
