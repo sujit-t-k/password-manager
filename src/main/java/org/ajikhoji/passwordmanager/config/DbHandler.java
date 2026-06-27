@@ -15,7 +15,7 @@ public class DbHandler {
     private final static String STR_DATABASE_NAME = System.getenv("DATABASE_NAME");
     private final static String STR_USER_NAME = System.getenv("DATABASE_USERNAME");
     private final static String STR_PASSWORD = System.getenv("DATABASE_PASSWORD");
-    private final static String STR_DATABASE_PATH = System.getenv("LOCALAPPDATA") + System.getenv("DATABASE_PATH");
+    public final static String STR_DATABASE_PATH = System.getenv("LOCALAPPDATA") + System.getenv("DATABASE_PATH");
     private static DbHandler handler;
 
     private Connection con = null;
@@ -37,6 +37,11 @@ public class DbHandler {
             handler = new DbHandler();
         }
         return handler;
+    }
+
+    public static DbHandler newInstance() {
+        handler = null;
+        return getInstance();
     }
 
     private void configureDatabase() {
@@ -167,6 +172,9 @@ public class DbHandler {
         try {
             if (this.con == null || this.con.isClosed()) {
                 return;
+            }
+            try (Statement stmt = this.con.createStatement()) {
+                stmt.execute("SHUTDOWN");
             }
             this.con.close();
         } catch (Exception e) {

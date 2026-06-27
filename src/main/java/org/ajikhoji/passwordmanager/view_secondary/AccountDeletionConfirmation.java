@@ -61,10 +61,6 @@ public class AccountDeletionConfirmation {
         vbxBase.getChildren().add(lblWarning);
 
         final Button btnDelete = new Button("Delete");
-        btnDelete.setOnAction(e -> {
-            onDeletionConfirmation.run();
-            st.close();
-        });
         btnDelete.getStyleClass().add("btn-important-decision-warning");
         btnDelete.setStyle("-fx-font-size: 16px;");
         final HBox hbxControls = new HBox(btnDelete);
@@ -82,6 +78,11 @@ public class AccountDeletionConfirmation {
         final Scene sc = new Scene(vbxBase);
         st.setScene(sc);
         st.show();
+
+        btnDelete.setOnAction(e -> {
+            onDeletionConfirmation.run();
+            st.close();
+        });
     }
 
 }

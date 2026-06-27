@@ -14,22 +14,32 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import org.ajikhoji.passwordmanager.AppStartup;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
+import org.ajikhoji.passwordmanager.config.DbHandler;
 import org.ajikhoji.passwordmanager.model.AccountCustomFieldEntity;
 import org.ajikhoji.passwordmanager.model.AccountEntity;
 import org.ajikhoji.passwordmanager.repository.TableFieldsPreferenceRememberable;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.ui_components.ToggleableTextField;
 
+import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import static org.ajikhoji.passwordmanager.util.ClipboardCopyUtil.copyText;
@@ -402,6 +412,40 @@ public class Utility {
             ivAppIcon.setPreserveRatio(true);
             hbxTitleBar.getChildren().addAll(ivAppIcon, lblAppTitle);
             AppConfig.getPrimaryStage().setTitle(lblAppTitle.getText());
+        }
+    }
+
+    public static void deleteRecursively(Path path) throws IOException {
+        Files.walkFileTree(path, new SimpleFileVisitor<>() {
+
+            @Override
+            public FileVisitResult visitFile(Path file,
+                                             BasicFileAttributes attrs)
+                    throws IOException {
+
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir,
+                                                      IOException exc)
+                    throws IOException {
+
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    public static void resetApplication() {
+        try {
+            DbConfig.closeDb();
+            deleteRecursively(Path.of(DbHandler.STR_DATABASE_PATH));
+            AppStartup.initApp();
+        } catch (final Exception e) {
+            e.printStackTrace();
+            Utility.showErrorAlert("Reset failed", "Internal error occurred");
         }
     }
 

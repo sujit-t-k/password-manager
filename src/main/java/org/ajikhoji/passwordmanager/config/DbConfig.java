@@ -16,7 +16,7 @@ public class DbConfig {
 
     public static void initDb() {
         if(db == null) {
-            db = DbHandler.getInstance();
+            db = DbHandler.newInstance();
             final Connection c = db.getConnection();
 
             final AccountRepo accRepo = new HsqlAccountRepo(c);
@@ -36,7 +36,10 @@ public class DbConfig {
     }
 
     public static void closeDb() {
-        db.closeConnection();
+        if(db != null) {
+            db.closeConnection();
+            db = null;
+        }
     }
 
     public static AccountService getAccountService() {

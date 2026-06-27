@@ -21,13 +21,18 @@ public class AppStartup extends Application {
 
     @Override
     public void start(Stage stage) {
-        DbConfig.initDb();
         AppConfig.setPrimaryStage(stage);
         AppConfig.setAppFrame(new AppFrame(stage, AppConfig.getScreenWidth() * 0.5D, AppConfig.getScreenHeight() * 0.7D));
         AppConfig.setHostServices(getHostServices());
 
-        final SettingService settingService = DbConfig.getSettingService();
+        initApp();
+        stage.show();
+    }
 
+    public static void initApp() {
+        DbConfig.initDb();
+
+        final SettingService settingService = DbConfig.getSettingService();
         if(settingService.isSetupDone()) {
             final String hint = settingService.getHint();
             final String hash = settingService.getHash();
@@ -63,13 +68,10 @@ public class AppStartup extends Application {
             );
         }
 
-        stage.setOnCloseRequest(e -> {
-            DbConfig.closeDb();
-        });
-        stage.show();
+        AppConfig.getPrimaryStage().setOnCloseRequest(e -> DbConfig.closeDb());
     }
 
-    private void openAppMainScreen(final String plainPassword, final byte[] salt) {
+    private static void openAppMainScreen(final String plainPassword, final byte[] salt) {
         final SecretKey key = KeyManager.generateKey(plainPassword, salt);
         final EncryptionService encryptionService = new AesEncryptionService(key);
         AppConfig.setEncryptionService(encryptionService);

@@ -29,6 +29,7 @@ public class AppSetupScreen {
         vbxParent.setAlignment(Pos.CENTER);
 
         final Pane paneContent = AppConfig.getAppFrame().getPane();
+        paneContent.getChildren().clear();
         vbxParent.prefHeightProperty().bind(paneContent.heightProperty());
         vbxParent.prefWidthProperty().bind(paneContent.widthProperty());
         paneContent.getChildren().add(vbxParent);
