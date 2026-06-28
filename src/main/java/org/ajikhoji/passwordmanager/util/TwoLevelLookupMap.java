@@ -70,4 +70,8 @@ public class TwoLevelLookupMap<T, U> {
         firstLevel.clear();
     }
 
+    public boolean isEmpty() {
+        return firstLevel.isEmpty();
+    }
+
 }

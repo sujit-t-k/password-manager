@@ -104,6 +104,9 @@ public class AccountEntity {
 
     @Override
     public boolean equals(final Object other) {
+        if(other == null) {
+            return false;
+        }
         if(other instanceof AccountEntity ae) {
             return
                     this.accId == ae.accId &&

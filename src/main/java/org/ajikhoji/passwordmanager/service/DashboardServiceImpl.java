@@ -49,7 +49,7 @@ public class DashboardServiceImpl implements DashboardService {
     public List<LabelUsage> getKMostUsedLabels(final int labelCountCap) {
         final List<LabelUsage> labelStats = labelService.getLabelUsageStatistics();
         int idx = 0;
-        while(idx < labelCountCap && labelStats.get(idx).getUsageCount() > 0) {
+        while(idx < labelCountCap && idx < labelStats.size() && labelStats.get(idx).getUsageCount() > 0) {
             ++idx;
         }
         return labelStats.subList(0, idx);

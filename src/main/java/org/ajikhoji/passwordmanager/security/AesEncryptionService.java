@@ -56,4 +56,13 @@ public class AesEncryptionService implements EncryptionService {
             throw new RuntimeException("Decryption failed", e);
         }
     }
+
+    @Override
+    public boolean matchesEncrypted(String encrypted1, String encrypted2) {
+        if(encrypted1 == null || encrypted2 == null) {
+            return false;
+        }
+        return decrypt(encrypted1).equals(decrypt(encrypted2));
+    }
+
 }

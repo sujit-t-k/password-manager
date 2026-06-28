@@ -1,6 +1,5 @@
 package org.ajikhoji.passwordmanager.util;
 
-import com.opencsv.CSVWriter;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -19,14 +18,15 @@ import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.config.DbHandler;
+import org.ajikhoji.passwordmanager.dto.AccountWithCustomFields;
+import org.ajikhoji.passwordmanager.dto.ImportAnalyzeResult;
 import org.ajikhoji.passwordmanager.model.AccountCustomFieldEntity;
 import org.ajikhoji.passwordmanager.model.AccountEntity;
 import org.ajikhoji.passwordmanager.repository.TableFieldsPreferenceRememberable;
-import org.ajikhoji.passwordmanager.security.EncryptionService;
+import org.ajikhoji.passwordmanager.service.CsvExportService;
 import org.ajikhoji.passwordmanager.ui_components.ToggleableTextField;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -36,15 +36,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
+import java.util.*;
 
 import static org.ajikhoji.passwordmanager.util.ClipboardCopyUtil.copyText;
 
-public class Utility {
+public final class Utility {
 
     private Utility() {}
 
@@ -62,6 +58,14 @@ public class Utility {
             return null;
         }
         return Timestamp.valueOf(ldt);
+    }
+
+    public static LocalDateTime getLocalDateTime(final String dateTimeString) {
+        try {
+            return LocalDateTime.parse(dateTimeString, dtf);
+        } catch (final Exception e) {
+            return null;
+        }
     }
 
     public static boolean isSameValuedObject(final Object obj1, final Object obj2) {
@@ -314,85 +318,17 @@ public class Utility {
         return order % 10_000_000_000L;
     }
 
-    public static void exportAllCredentialDataAsCsv(final String filePath, final ProgressBar pb) {
-        pb.setProgress(0.0D);
-
-        final EncryptionService encryptionService = AppConfig.getEncryptionService();
-        final Map<Long, String> labelIdToLabelName = new HashMap<>();
-        final Function<Long, String> LabelName = id -> {
-            String labelName = labelIdToLabelName.get(id);
-            if(labelName == null) {
-                labelName = DbConfig.getLabelService().getLabelEntityById(id).getLabelName();
-                labelIdToLabelName.put(id, labelName);
-            }
-            return labelName;
-        };
-
-        final class AccountWithCustomFields {
-            final AccountEntity accountEntity;
-            final List<AccountCustomFieldEntity> customFields;
-
-            public AccountWithCustomFields(final AccountEntity ae, final List<AccountCustomFieldEntity> cf) {
-                accountEntity = ae;
-                customFields = cf;
-            }
-
-            int getCustomFieldsCount() {
-                return customFields.size();
-            }
-
-            String[] getAsCsvRowData() {
-                final String[] row = new String[5 + (getCustomFieldsCount() << 1)];
-                row[0] = accountEntity.getAccName();
-                row[1] = encryptionService.decrypt(accountEntity.getAccPassword());
-                row[2] = accountEntity.getPlatform();
-                row[3] = LabelName.apply(accountEntity.getLabelId());
-                row[4] = accountEntity.getLink();
-                for(int i = 0; i < getCustomFieldsCount(); ++i) {
-                    row[5 + (i << 1)] = customFields.get(i).getFieldName();
-                    row[5 + (i << 1) + 1] = encryptionService.decrypt(customFields.get(i).getFieldValue());
-                }
-                return row;
-            }
-
-        }
-
+    public static void exportAllCredentialDataAsCsv(final String filePath) {
         try {
             final List<AccountEntity> allAccounts = DbConfig.getAccountService().getAllAccountCredential();
-            final AccountWithCustomFields[] info = new AccountWithCustomFields[allAccounts.size()];
-            final double maxProgressForDataLoad = 0.25D;
-            int maxCustomFields = 0;
+            final List<AccountWithCustomFields> info = new ArrayList<>(allAccounts.size());
 
-            for(int i = 0; i < info.length; ++i) {
-                final List<AccountCustomFieldEntity> allCustomFields = DbConfig.getAccountCustomFieldService().getAccountCustomFieldsForAccountId(allAccounts.get(i).getAccId());
-                info[i] = new AccountWithCustomFields(allAccounts.get(i), allCustomFields);
-                pb.setProgress((maxProgressForDataLoad * (i + 1)) / allAccounts.size());
-                maxCustomFields = Math.max(maxCustomFields, info[i].getCustomFieldsCount());
+            for(final AccountEntity accountEntity : allAccounts) {
+                final List<AccountCustomFieldEntity> allCustomFields = DbConfig.getAccountCustomFieldService().getAccountCustomFieldsForAccountId(accountEntity.getAccId());
+                info.add(new AccountWithCustomFields(accountEntity, allCustomFields));
             }
 
-            final CSVWriter writer = new CSVWriter(new FileWriter(filePath));
-            final String[] header = new String[5 + (maxCustomFields << 1)];
-            header[0] = "Account ID/Name";
-            header[1] = "Password";
-            header[2] = "Platform";
-            header[3] = "Label";
-            header[4] = "Link";
-            for(int i = 0; i < maxCustomFields; ++i) {
-                header[5 + (i << 1)] = String.format("Custom Field Name %d", (i + 1));
-                header[5 + (i << 1) + 1] = String.format("Custom Field Value %d", (i + 1));
-            }
-            writer.writeNext(header);
-
-            final double maxProgressForDataWrite = 0.9D;
-            final double progressLength = maxProgressForDataWrite - maxProgressForDataLoad;
-            for (int i = 0; i < info.length; ++i) {
-                writer.writeNext(info[i].getAsCsvRowData());
-                pb.setProgress(maxProgressForDataLoad + ((progressLength * (i + 1)) / info.length));
-            }
-
-            writer.flush();
-            writer.close();
-            pb.setProgress(1.0D);
+            new CsvExportService().export(info, new File(filePath).toPath());
         } catch (final Exception e) {
             throw new RuntimeException(String.format("Export operation aborted: %s", e.getMessage()));
         }
@@ -417,21 +353,14 @@ public class Utility {
 
     public static void deleteRecursively(Path path) throws IOException {
         Files.walkFileTree(path, new SimpleFileVisitor<>() {
-
             @Override
-            public FileVisitResult visitFile(Path file,
-                                             BasicFileAttributes attrs)
-                    throws IOException {
-
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 Files.delete(file);
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir,
-                                                      IOException exc)
-                    throws IOException {
-
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
                 Files.delete(dir);
                 return FileVisitResult.CONTINUE;
             }
@@ -444,7 +373,6 @@ public class Utility {
             deleteRecursively(Path.of(DbHandler.STR_DATABASE_PATH));
             AppStartup.initApp();
         } catch (final Exception e) {
-            e.printStackTrace();
             Utility.showErrorAlert("Reset failed", "Internal error occurred");
         }
     }

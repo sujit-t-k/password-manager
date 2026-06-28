@@ -25,24 +25,27 @@ import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.config.SideBarItem;
+import org.ajikhoji.passwordmanager.dto.AccountWithCustomFields;
+import org.ajikhoji.passwordmanager.dto.ImportAnalyzeResult;
 import org.ajikhoji.passwordmanager.exception.DatabaseOperationFailureException;
 import org.ajikhoji.passwordmanager.exception.ValidationException;
+import org.ajikhoji.passwordmanager.model.AccountCustomFieldEntity;
 import org.ajikhoji.passwordmanager.model.LabelEntity;
 import org.ajikhoji.passwordmanager.repository.OpenLinkButtonActionCustomizable;
 import org.ajikhoji.passwordmanager.repository.TableFieldsPreferenceRememberable;
 import org.ajikhoji.passwordmanager.security.AesEncryptionService;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.security.KeyManager;
+import org.ajikhoji.passwordmanager.service.CsvExportService;
+import org.ajikhoji.passwordmanager.service.CsvImportService;
 import org.ajikhoji.passwordmanager.service.SettingService;
 import org.ajikhoji.passwordmanager.ui_components.LabelManager;
-import org.ajikhoji.passwordmanager.util.ClipboardCopyUtil;
-import org.ajikhoji.passwordmanager.util.HashUtil;
-import org.ajikhoji.passwordmanager.util.SaltUtil;
-import org.ajikhoji.passwordmanager.util.Utility;
+import org.ajikhoji.passwordmanager.util.*;
 import org.ajikhoji.passwordmanager.validator.AccountInfoValidator;
 
 import javax.crypto.SecretKey;
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -213,7 +216,9 @@ public class SettingsScreen extends Pane {
         final Button btnClearData = new Button("Clear data");
         gpData.addRow(1, new Label("Deletes all stored account credential"), btnClearData);
         final Button btnExport = new Button("Export as CSV");
-        gpData.addRow(2, new Label("Exports all stored credential within a single CSV file"), btnExport);
+        gpData.addRow(2, new Label("Exports all stored credential as a single CSV file"), btnExport);
+        final Button btnImport = new Button("Import from CSV");
+        gpData.addRow(3, new Label("Import data from previously exported CSV file"), btnImport);
 
         vbxContent.getChildren().addAll(vbxGeneral, vbxLabel, gpSecurity, gpData);
         sp.setContent(vbxContent);
@@ -232,6 +237,14 @@ public class SettingsScreen extends Pane {
 
         btnClearData.setOnAction(e -> showClearDataConfirmation());
         btnExport.setOnAction(e -> showExportDataDialog());
+        btnImport.setOnAction(e -> {
+            FileChooser f = new FileChooser();
+            File r = f.showOpenDialog(AppConfig.getPrimaryStage());
+            EncryptionService es = AppConfig.getEncryptionService();
+
+            List<AccountWithCustomFields> importedData = new CsvImportService().importFrom(r.toPath());
+            ImportAnalyzeResult res = ImportDataAnalyzer.getImportAnalytics(importedData, ImportDataAnalyzer.ImportMethod.CSV);
+        });
 
         final long initialOrder = Math.abs(settingService.getTableFieldsOrder());
         for(int i = 0; i < fieldNames.length; ++i) {
@@ -681,14 +694,10 @@ public class SettingsScreen extends Pane {
         final Label lblPrompt = new Label("Data export in progress. Please wait for a moment.");
         vbxFields.getChildren().add(lblPrompt);
 
-        final ProgressBar pbProgress = new ProgressBar();
-        pbProgress.prefWidthProperty().bind(vbxFields.widthProperty());
-        vbxFields.getChildren().add(pbProgress);
-
         showSettingEditor(st, vbxFields, "Exporting data");
 
         try {
-            Utility.exportAllCredentialDataAsCsv(saveFilePath, pbProgress);
+            Utility.exportAllCredentialDataAsCsv(saveFilePath);
             showExportSuccessDialog();
         } catch (final Exception e) {
             Utility.showErrorAlert("Operation Failed", "Internal Error occurred");
