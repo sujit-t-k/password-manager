@@ -39,14 +39,19 @@ import org.ajikhoji.passwordmanager.security.KeyManager;
 import org.ajikhoji.passwordmanager.service.CsvExportService;
 import org.ajikhoji.passwordmanager.service.CsvImportService;
 import org.ajikhoji.passwordmanager.service.SettingService;
+import org.ajikhoji.passwordmanager.service.import_strategy.ConflictResolutionStrategy;
+import org.ajikhoji.passwordmanager.service.import_strategy.ConflictResolutionStrategyFactory;
+import org.ajikhoji.passwordmanager.service.import_strategy.ConflictResolutionType;
 import org.ajikhoji.passwordmanager.ui_components.LabelManager;
 import org.ajikhoji.passwordmanager.util.*;
 import org.ajikhoji.passwordmanager.validator.AccountInfoValidator;
 
 import javax.crypto.SecretKey;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -237,14 +242,7 @@ public class SettingsScreen extends Pane {
 
         btnClearData.setOnAction(e -> showClearDataConfirmation());
         btnExport.setOnAction(e -> showExportDataDialog());
-        btnImport.setOnAction(e -> {
-            FileChooser f = new FileChooser();
-            File r = f.showOpenDialog(AppConfig.getPrimaryStage());
-            EncryptionService es = AppConfig.getEncryptionService();
-
-            List<AccountWithCustomFields> importedData = new CsvImportService().importFrom(r.toPath());
-            ImportAnalyzeResult res = ImportDataAnalyzer.getImportAnalytics(importedData, ImportDataAnalyzer.ImportMethod.CSV);
-        });
+        btnImport.setOnAction(e -> showImportDialog());
 
         final long initialOrder = Math.abs(settingService.getTableFieldsOrder());
         for(int i = 0; i < fieldNames.length; ++i) {
@@ -764,6 +762,245 @@ public class SettingsScreen extends Pane {
         showSettingEditor(st, vbxInfo, "Export completed");
     }
 
+    private void showImportDialog() {
+        final Stage st = new Stage();
+        final VBox vbx = new VBox(5.0D);
+        vbx.setStyle("-fx-padding: 20px;");
+
+        final Label lblPrompt = new Label("Please wait for a moment...");
+        lblPrompt.setStyle("-fx-font-size: 16px;");
+        final ProgressBar pb = new ProgressBar();
+        vbx.getChildren().addAll(lblPrompt, pb);
+        try {
+            final FileChooser fileChooser = new FileChooser();
+            final File file = fileChooser.showOpenDialog(AppConfig.getPrimaryStage());
+
+            if(file == null) {
+                return;
+            }
+
+            showSettingEditor(st, vbx, "Analyzing data");
+            final List<AccountWithCustomFields> importedData = new CsvImportService().importFrom(file.toPath());
+            final ImportAnalyzeResult result = ImportDataAnalyzer.getImportAnalytics(importedData, ImportDataAnalyzer.ImportMethod.CSV);
+
+            if(result.getNewAccounts().isEmpty() && result.getConflictAccounts().isEmpty()) {
+                Utility.showInformationAlert("Nothing to import", "Either file is empty or all records are available already.");
+                return;
+            }
+            showImportAnalysisResultDialog(result);
+        } catch (final RuntimeException e) {
+            Utility.showErrorAlert("Import failed", e.getMessage());
+        } catch (final Exception e) {
+            Utility.showErrorAlert("Import failed", "Internal Error occurred");
+        } finally {
+            st.close();
+        }
+    }
+
+    private ConflictResolutionType selectedType;
+    private void showImportAnalysisResultDialog(final ImportAnalyzeResult result) {
+        selectedType = ConflictResolutionType.IMPORT_LATEST_ONLY;//for safe fallback
+        final Stage st = new Stage();
+        final VBox vbx = new VBox(12.0D);
+        vbx.setStyle("-fx-padding: 16px;");
+
+        final int conflictRecordsCount = result.getConflictAccounts().size();
+        final VBox vbxAnalysisResult = new VBox(
+            6.0D,
+            new Label(String.format("Total records found: %d", result.getTotalRecordsCount())),
+            new Label(String.format("%d new", result.getNewAccounts().size())),
+            new Label(String.format("%d duplicates", result.getAlreadyAvailableAccounts().size())),
+            new Label(String.format("%d conflicts", conflictRecordsCount))
+        );
+        vbx.getChildren().add(vbxAnalysisResult);
+
+        if(conflictRecordsCount > 0) {
+            final Label lblPrompt = new Label("Choose how to proceed with conflict records:");
+
+            final VBox vbxChoices = new VBox(3.0D);
+            final RadioButton rbImportLatest = getRadioButton("Import only the latest records (recommended)", () -> selectedType = ConflictResolutionType.IMPORT_LATEST_ONLY);
+            final RadioButton rbReplace = getRadioButton("Import all conflicting records (overrides some of existing records)", () -> selectedType = ConflictResolutionType.REPLACE_EXISTING);
+            final RadioButton rbNewOnly = getRadioButton("Ignore all conflicting records (skips all conflict records)", () -> selectedType = ConflictResolutionType.IMPORT_NEW_ONLY);
+            final RadioButton rbReview = getRadioButton("Review conflicts individually", () -> selectedType = ConflictResolutionType.REVIEW_MANUALLY);
+            groupRadioButtons(rbImportLatest, rbReplace, rbNewOnly, rbReview);
+            rbImportLatest.setSelected(true);
+
+            vbxChoices.getChildren().addAll(rbImportLatest, rbReplace, rbNewOnly, rbReview);
+            vbx.getChildren().addAll(lblPrompt, vbxChoices);
+        }
+
+        final HBox hbxControls = new HBox(16.0D);
+        hbxControls.setAlignment(Pos.CENTER);
+        final Button btnCancel = new Button("Cancel");
+        final Button btnProceed = new Button("Proceed");
+        hbxControls.getChildren().addAll(btnCancel, btnProceed);
+        vbx.getChildren().add(hbxControls);
+
+        showSettingEditor(st, vbx, "Analysis Summary");
+
+        btnCancel.setOnAction(e -> st.close());
+        btnProceed.setOnAction(e -> {
+            if(selectedType.equals(ConflictResolutionType.REVIEW_MANUALLY)) {
+                showManualReviewDialog(result);
+                st.close();
+            } else {
+                try {
+                    final ConflictResolutionStrategy strategy = ConflictResolutionStrategyFactory.create(selectedType);
+                    strategy.resolve(result);
+                    Utility.showInformationAlert("Import successful", String.format("%d records imported", result.getImportedRecordCount()));
+                } catch (final Exception ex) {
+                    Utility.showErrorAlert("Error occurred","Please restart the app and try again");
+                } finally {
+                    st.close();
+                }
+            }
+        });
+    }
+
+    private int conflictIdx = 0;
+    private static final byte YET_TO_DECIDE = 3, KEEP_EXISTING_RECORD = 7, REPLACE_BY_IMPORTED_RECORD = 15;
+    private void showManualReviewDialog(final ImportAnalyzeResult result) {
+        conflictIdx = 0;
+        final Stage st = new Stage();
+        st.setMinWidth(AppConfig.getVisualScreenWidth() * 0.8D);
+        st.setMinHeight(AppConfig.getVisualScreenHeight() * 0.8D);
+        final BorderPane bpBase = new BorderPane();
+        bpBase.setStyle("-fx-padding: 20px 12px 20px 12px;");
+
+        final int totalConflicts = result.getConflictAccounts().size();
+        final Label lblTitle = new Label();
+        lblTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
+        lblTitle.setTextAlignment(TextAlignment.CENTER);
+        final HBox hbxTitle = new HBox(lblTitle);
+        hbxTitle.setAlignment(Pos.CENTER);
+        bpBase.setTop(hbxTitle);
+
+        final VBox vbxExisting = new VBox(12.0D);
+        vbxExisting.setStyle("-fx-padding: 4px;");
+        vbxExisting.setAlignment(Pos.CENTER);
+        final Label lblExisting = new Label("Already available");
+        lblExisting.setTextAlignment(TextAlignment.CENTER);
+        lblExisting.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        final ScrollPane existingAccountInfo = new ScrollPane();
+        existingAccountInfo.setFitToWidth(true);
+        existingAccountInfo.getStyleClass().add("info-scroll");
+        final String decisionButtonDefaultStyle = "-fx-font-size: 16px;";
+        final Button btnExisting = new Button("Keep this");
+        btnExisting.setStyle(decisionButtonDefaultStyle);
+        final HBox hbxExistingControl = new HBox(btnExisting);
+        hbxExistingControl.setAlignment(Pos.CENTER);
+        hbxExistingControl.setStyle("-fx-padding: 4px;");
+        vbxExisting.getChildren().addAll(lblExisting, existingAccountInfo, hbxExistingControl);
+
+        final VBox vbxImported = new VBox(12.0D);
+        vbxImported.setStyle("-fx-padding: 4px;");
+        vbxImported.setAlignment(Pos.CENTER);
+        final Label lblImported = new Label("From Import file");
+        lblImported.setTextAlignment(TextAlignment.CENTER);
+        lblImported.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        final ScrollPane importedAccountInfo = new ScrollPane();
+        importedAccountInfo.setFitToWidth(true);
+        importedAccountInfo.getStyleClass().add("info-scroll");
+        final Button btnImported = new Button("Import this");
+        btnImported.setStyle(decisionButtonDefaultStyle);
+        final HBox hbxImportedControl = new HBox(btnImported);
+        hbxImportedControl.setAlignment(Pos.CENTER);
+        hbxImportedControl.setStyle("-fx-padding: 4px;");
+        vbxImported.getChildren().addAll(lblImported, importedAccountInfo, hbxImportedControl);
+
+        final HBox hbxComparison = new HBox(12.0D, vbxExisting, vbxImported);
+        HBox.setHgrow(vbxExisting, Priority.ALWAYS);
+        HBox.setHgrow(vbxImported, Priority.ALWAYS);
+        final Label lblDecision = new Label();
+        lblDecision.setTextAlignment(TextAlignment.CENTER);
+        lblDecision.setStyle("-fx-font-size: 18px; -fx-text-fill: #FFCE0C");
+        final VBox vbxComparison = new VBox(12.0D, hbxComparison, lblDecision);
+        vbxComparison.setAlignment(Pos.CENTER);
+        bpBase.setCenter(vbxComparison);
+
+        final HBox hbxControls = new HBox(16.0D);
+        hbxControls.setAlignment(Pos.CENTER);
+        bpBase.setBottom(hbxControls);
+
+        final Button btnPrevious = new Button("Previous");
+        final Button btnNext = new Button("Next");
+        if(totalConflicts > 1) {
+            hbxControls.getChildren().add(btnPrevious);
+        }
+        hbxControls.getChildren().add(btnNext);
+
+        showSettingEditor(st, bpBase, String.format("Import Conflict Resolution - %s", AppConfig.getAppName()));
+
+        final byte[] decision = new byte[totalConflicts];
+        Arrays.fill(decision, YET_TO_DECIDE);
+
+        final String selectedOptionButtonStyle = "-fx-font-size: 16px; -fx-text-fill: #163005; -fx-background-color: #B5E61D;";
+        final Runnable updateDecisionLabel = () -> {
+            lblDecision.setText(
+                switch (decision[conflictIdx]) {
+                    case REPLACE_BY_IMPORTED_RECORD -> "Selected option: Import record";
+                    case KEEP_EXISTING_RECORD -> "Selected option: Keep existing record";
+                    default -> "Select one of the option to proceed";
+                }
+            );
+            btnExisting.setStyle(decisionButtonDefaultStyle);
+            btnImported.setStyle(decisionButtonDefaultStyle);
+        };
+        final Consumer<Button> highlightSelectedOptionButton = selectedButton -> {
+              updateDecisionLabel.run();
+              selectedButton.setStyle(selectedOptionButtonStyle);
+              btnNext.setDisable(false);
+        };
+        final Runnable updatePageContent = () -> {
+            lblTitle.setText(String.format("Conflict %d of %d", conflictIdx + 1, totalConflicts));
+            btnPrevious.setDisable(conflictIdx == 0);
+
+            final AccountWithCustomFields existingAccountWithCustomFields = result.getConflictAccounts().get(conflictIdx).alreadyAvailableAccount();
+            final AccountWithCustomFields importedAccountWithCustomFields = result.getConflictAccounts().get(conflictIdx).importedAccount();
+            final GridPane[] accountInfoView = DetailedAccountInfoScreen.getDetailedAccountInfoView(existingAccountWithCustomFields, importedAccountWithCustomFields);
+            existingAccountInfo.setContent(accountInfoView[0]);
+            importedAccountInfo.setContent(accountInfoView[1]);
+
+            btnNext.setText(conflictIdx + 1 == totalConflicts ? "Proceed to import" : "Next");
+            btnNext.setDisable(conflictIdx >= 0 && conflictIdx <= totalConflicts - 1 && decision[conflictIdx] == YET_TO_DECIDE);
+
+            updateDecisionLabel.run();
+            if(decision[conflictIdx] == KEEP_EXISTING_RECORD) {
+                highlightSelectedOptionButton.accept(btnExisting);
+            } else if (decision[conflictIdx] == REPLACE_BY_IMPORTED_RECORD) {
+                highlightSelectedOptionButton.accept(btnImported);
+            }
+        };
+        final Runnable gotoNextPage = () -> {
+            if(decision[conflictIdx] == YET_TO_DECIDE) {
+                return;
+            }
+            if(conflictIdx + 1 == totalConflicts) {
+                System.out.println(Arrays.toString(decision));
+            } else {
+                conflictIdx = Math.min(totalConflicts - 1, conflictIdx + 1);
+                updatePageContent.run();
+            }
+        };
+        btnPrevious.setOnAction(e -> {
+            conflictIdx = Math.max(0, conflictIdx - 1);
+            updatePageContent.run();
+        });
+        btnNext.setOnAction(e -> gotoNextPage.run());
+        btnImported.setOnAction(e -> {
+            decision[conflictIdx] = REPLACE_BY_IMPORTED_RECORD;
+            highlightSelectedOptionButton.accept(btnImported);
+        });
+        btnExisting.setOnAction(e -> {
+            decision[conflictIdx] = KEEP_EXISTING_RECORD;
+            highlightSelectedOptionButton.accept(btnExisting);
+        });
+
+        st.setOnCloseRequest(e -> showImportAnalysisResultDialog(result));
+        st.setResizable(true);
+        updatePageContent.run();
+    }
+
     private void showSettingEditor(final Stage st, final Pane paneBase, final String windowTitle) {
         st.setResizable(false);
         st.setTitle(windowTitle);
@@ -776,6 +1013,34 @@ public class SettingsScreen extends Pane {
         final Scene sc = new Scene(paneBase);
         st.setScene(sc);
         st.show();
+    }
+
+    private RadioButton getRadioButton(final String text, final Runnable onSelection) {
+        final RadioButton rb = new RadioButton(text);
+        rb.addEventFilter(MouseEvent.ANY, e -> {
+            if(rb.isSelected()) {
+                e.consume();
+            }
+        });
+        rb.setOnAction(e -> {
+            rb.setSelected(true);
+            onSelection.run();
+        });
+        return rb;
+    }
+
+    private void groupRadioButtons(final RadioButton... rbs) {
+        for (final RadioButton rb : rbs) {
+            rb.selectedProperty().addListener((ol, ov, nv) -> {
+                if(nv) {
+                    for (final RadioButton other : rbs) {
+                        if(other != rb) {
+                            other.setSelected(false);
+                        }
+                    }
+                }
+            });
+        }
     }
 
 }

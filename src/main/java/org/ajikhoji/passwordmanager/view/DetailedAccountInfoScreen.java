@@ -13,13 +13,13 @@ import org.ajikhoji.passwordmanager.Launcher;
 import org.ajikhoji.passwordmanager.config.AppConfig;
 import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
+import org.ajikhoji.passwordmanager.dto.AccountWithCustomFields;
 import org.ajikhoji.passwordmanager.model.AccountCustomFieldEntity;
 import org.ajikhoji.passwordmanager.model.AccountEntity;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.util.Utility;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -27,20 +27,126 @@ import static org.ajikhoji.passwordmanager.util.ClipboardCopyUtil.copyText;
 
 public class DetailedAccountInfoScreen {
 
-    private final AppResources ar;
-
     public static void show(final AccountEntity info, final List<AccountCustomFieldEntity> customFields) {
         new DetailedAccountInfoScreen(info, customFields);
     }
 
-    private DetailedAccountInfoScreen(final AccountEntity info, final List<AccountCustomFieldEntity> customFields) {
-        ar = AppConfig.getAppResources();
-        final Stage st = new Stage();
-        st.setTitle("Viewing account credential");
-        st.initOwner(AppConfig.getPrimaryStage());
-        st.initModality(Modality.APPLICATION_MODAL);
+    public static GridPane[] getDetailedAccountInfoView(final AccountWithCustomFields existing, final AccountWithCustomFields imported) {
+        final GridPane existingStat = getBaseGridPane();
+        final GridPane importedStat = getBaseGridPane();
 
-        GridPane gp = new GridPane(10.0D, 20.0D);
+        final BiConsumer<String, GridPane> Title = (sectionTitle, parent) -> {
+            final int rowsFilled = parent.getRowCount();
+            final Label lblTitle = new Label(sectionTitle);
+            lblTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+            lblTitle.setAlignment(Pos.CENTER);
+            lblTitle.setTextAlignment(TextAlignment.CENTER);
+
+            final HBox hbxTitle = new HBox(lblTitle);
+            parent.add(hbxTitle, 0, rowsFilled, 2, 1);
+        };
+
+        final AccountEntity existingAccount = existing.getAccountEntity();
+        final AccountEntity importedAccount = imported.getAccountEntity();
+        final EncryptionService encryptionService = AppConfig.getEncryptionService();
+
+        Title.accept("Primary Account Info", existingStat);
+        Title.accept("Primary Account Info", importedStat);
+
+        addField(
+ "Account Name/ID:", existingAccount.getAccName(), existingStat,
+"Account Name/ID:", importedAccount.getAccName(), importedStat
+        );
+        addField(
+"Password:", encryptionService.decrypt(existingAccount.getAccPassword()), existingStat,
+"Password:", encryptionService.decrypt(importedAccount.getAccPassword()), importedStat
+        );
+        addField(
+"Platform:", existingAccount.getPlatform(), existingStat,
+"Platform:", importedAccount.getPlatform(), importedStat
+        );
+        addField(
+"Link:", existingAccount.getLink(), existingStat,
+"Link:", importedAccount.getLink(), importedStat
+        );
+
+        final Map<String, String> existingCustomFields = new HashMap<>();
+        for(final AccountCustomFieldEntity customField : existing.getCustomFields()) {
+            existingCustomFields.put(customField.getFieldName(), encryptionService.decrypt(customField.getFieldValue()));
+        }
+
+        final Map<String, String> importedCustomFields = new HashMap<>();
+        final Set<String> commonCustomFields = new HashSet<>();
+        for(final AccountCustomFieldEntity customField : imported.getCustomFields()) {
+            importedCustomFields.put(customField.getFieldName(), encryptionService.decrypt(customField.getFieldValue()));
+            if(existingCustomFields.containsKey(customField.getFieldName())) {
+                commonCustomFields.add(customField.getFieldName());
+            }
+        }
+
+        Title.accept(String.format("%sAdditional Account Info", existingCustomFields.isEmpty() ? "No " : ""), existingStat);
+        Title.accept(String.format("%sAdditional Account Info", importedCustomFields.isEmpty() ? "No " : ""), importedStat);
+
+        //add common fields first (they may have minimal difference)
+        for(final String commonCustomField : commonCustomFields) {
+            final String existingValue = existingCustomFields.get(commonCustomField);
+            final String importedValue = importedCustomFields.get(commonCustomField);
+
+            addField(commonCustomField, existingValue,existingStat, commonCustomField, importedValue, importedStat);
+            importedCustomFields.remove(commonCustomField);
+            existingCustomFields.remove(commonCustomField);
+        }
+
+        final List<Map.Entry<String, String>> remainingExistingCustomFields = new ArrayList<>(existingCustomFields.entrySet());
+        final List<Map.Entry<String, String>> remainingImportedCustomFields = new ArrayList<>(importedCustomFields.entrySet());
+
+        //add remaining (non-common) custom fields
+        for(int i = 0; i < Math.max(remainingExistingCustomFields.size(), remainingImportedCustomFields.size()); ++i) {
+            String fieldNameExisting = "", fieldValueExisting = "", fieldNameImported = "", fieldValueImported = "";
+
+            if(i < remainingExistingCustomFields.size()) {
+                fieldNameExisting = remainingExistingCustomFields.get(i).getKey();
+                fieldValueExisting = remainingExistingCustomFields.get(i).getValue();
+            }
+            if(i < remainingImportedCustomFields.size()) {
+                fieldNameImported = remainingImportedCustomFields.get(i).getKey();
+                fieldValueImported = remainingImportedCustomFields.get(i).getValue();
+            }
+
+            addField(fieldNameExisting, fieldValueExisting, existingStat, fieldNameImported, fieldValueImported, importedStat);
+        }
+
+        return new GridPane[]{existingStat, importedStat};
+    }
+
+    private static void addField(final String fieldNameExisting, final String fieldValueExisting, final GridPane existingViewer,
+                                 final String fieldNameImported, final String fieldValueImported, final GridPane importedViewer) {
+        final Label lblFieldNameExisting = new Label(fieldNameExisting);
+        final Label lblFieldValueExisting = new Label(fieldValueExisting);
+        final Label lblFieldNameImported = new Label(fieldNameImported);
+        final Label lblFieldValueImported = new Label(fieldValueImported);
+
+        if(!fieldNameExisting.isBlank()) {
+            existingViewer.addRow(existingViewer.getRowCount(), lblFieldNameExisting, lblFieldValueExisting);
+        }
+        if(!fieldNameImported.isBlank()) {
+            importedViewer.addRow(importedViewer.getRowCount(), lblFieldNameImported, lblFieldValueImported);
+        }
+        if(!fieldNameExisting.equals(fieldNameImported)) {
+            highlightDifference(lblFieldNameExisting, lblFieldValueExisting, lblFieldNameImported, lblFieldValueImported);
+        } else if (!Utility.isSameValuedObject(fieldValueExisting, fieldValueImported)) {
+            highlightDifference(lblFieldValueExisting, lblFieldValueImported);
+        }
+    }
+
+    private static void highlightDifference(final Label... lbl) {
+        for(final Label l : lbl) {
+            l.setStyle("-fx-text-fill: #99ffaa;");
+        }
+    }
+
+    private static GridPane getBaseGridPane() {
+        final GridPane gp = new GridPane(10.0D, 20.0D);
         gp.setStyle("-fx-padding: 20px;");
         ColumnConstraints ccField = new ColumnConstraints();
         ccField.setHalignment(HPos.RIGHT);
@@ -49,6 +155,12 @@ public class DetailedAccountInfoScreen {
         ccValue.setHalignment(HPos.LEFT);
         ccValue.setHgrow(Priority.ALWAYS);
         gp.getColumnConstraints().add(ccValue);
+
+        return gp;
+    }
+
+    public GridPane getDetailedAccountInfoView(final AccountEntity info, final List<AccountCustomFieldEntity> customFields) {
+        final GridPane gp = getBaseGridPane();
 
         final String noValue = "-";
         final Consumer<String> Title = sectionTitle -> {
@@ -103,6 +215,15 @@ public class DetailedAccountInfoScreen {
             customFields.forEach(entity -> FieldInfo.accept(entity.getFieldName(), encryptionService.decrypt(entity.getFieldValue())));
         }
 
+        return gp;
+    }
+
+    private DetailedAccountInfoScreen(final AccountEntity info, final List<AccountCustomFieldEntity> customFields) {
+        final Stage st = new Stage();
+        st.setTitle("Viewing account credential");
+        st.initOwner(AppConfig.getPrimaryStage());
+        st.initModality(Modality.APPLICATION_MODAL);
+
         final Button btnClose = new Button("Close");
         btnClose.setStyle("-fx-font-size: 16px;");
         btnClose.setOnAction(e -> st.close());
@@ -110,12 +231,14 @@ public class DetailedAccountInfoScreen {
         hbxControls.setStyle("-fx-padding: 10px; -fx-border-width: 1px 0 0 0; -fx-border-stroke: #333333;");
         hbxControls.setAlignment(Pos.CENTER);
 
-        final ScrollPane spContent = new ScrollPane(gp);
+        final ScrollPane spContent = new ScrollPane(getDetailedAccountInfoView(info, customFields));
         spContent.setFitToWidth(true);
         spContent.getStyleClass().add("info-scroll");
+
         final BorderPane bpBase = new BorderPane();
         bpBase.setCenter(spContent);
         bpBase.setBottom(hbxControls);
+
         final Scene scene = new Scene(bpBase, AppConfig.getScreenWidth() * 0.4D, AppConfig.getScreenHeight() * 0.7D);
         bpBase.getStyleClass().add("pane-primary");
         bpBase.getStylesheets().add(Objects.requireNonNull(Launcher.class.getResource("style/dark-theme.css")).toExternalForm());
@@ -124,6 +247,7 @@ public class DetailedAccountInfoScreen {
     }
 
     private HBox getCopyableLabel(final String text) {
+        final AppResources ar = AppConfig.getAppResources();
         final Label lbl = new Label(text);
 
         final ImageView imgViewCopy = new ImageView(ar.imgCopy);

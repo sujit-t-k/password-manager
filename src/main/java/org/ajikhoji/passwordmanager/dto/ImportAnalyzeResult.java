@@ -7,6 +7,8 @@ import java.util.List;
 
 public final class ImportAnalyzeResult {
 
+    private int importedRecordCount = 0;
+
     public record ConflictAccount(AccountWithCustomFields alreadyAvailableAccount, AccountWithCustomFields importedAccount) {
         public boolean isImportedAccountLatest() {
             final AccountEntity already = alreadyAvailableAccount.getAccountEntity();
@@ -62,6 +64,18 @@ public final class ImportAnalyzeResult {
 
     public List<AccountWithCustomFields> getAlreadyAvailableAccounts() {
         return alreadyAvailableAccounts;
+    }
+
+    public int getTotalRecordsCount() {
+        return newAccounts.size() + conflictAccounts.size() + alreadyAvailableAccounts.size();
+    }
+
+    public void setImportedRecordCount(final int count) {
+        importedRecordCount = count;
+    }
+
+    public int getImportedRecordCount() {
+        return importedRecordCount;
     }
 
 }

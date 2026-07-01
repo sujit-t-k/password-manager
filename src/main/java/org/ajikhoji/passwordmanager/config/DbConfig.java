@@ -4,6 +4,7 @@ import org.ajikhoji.passwordmanager.repository.*;
 import org.ajikhoji.passwordmanager.service.*;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 public class DbConfig {
 
@@ -60,6 +61,18 @@ public class DbConfig {
 
     public static DashboardService getDashboardService() {
         return dashboardService;
+    }
+
+    public static void setAutoCommit(final boolean autoCommit) throws SQLException {
+        if(db.getConnection() != null) {
+            db.getConnection().setAutoCommit(autoCommit);
+        }
+    }
+
+    public static void commit() throws SQLException {
+        if(db.getConnection() != null && !db.getConnection().getAutoCommit()) {
+            db.getConnection().commit();
+        }
     }
 
 }
