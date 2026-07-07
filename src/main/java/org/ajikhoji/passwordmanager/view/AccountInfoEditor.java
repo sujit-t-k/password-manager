@@ -45,7 +45,7 @@ public class AccountInfoEditor extends BorderPane {
         cbxLabel.getSelectionModel().select(DbConfig.getLabelService().getLabelEntityByName(LabelEntity.DEFAULT_LABEL_NAME));
         final Button btnAddNewLabel = new Button("Add Label");
         btnAddNewLabel.setOnAction(e -> {
-            if(DbConfig.getLabelService().getUsedLabels().size() - 1 >= LabelEntity.MAX_LABEL_CAP) {//-1 to exclude 'unlabeled' label entity
+            if(DbConfig.getLabelService().getUsedLabels().size() >= LabelEntity.MAX_LABEL_CAP) {
                 Utility.showErrorAlert("Max labels reached", "Delete existing label to add new one");
                 return;
             }

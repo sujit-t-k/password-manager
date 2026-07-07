@@ -3,7 +3,7 @@ package org.ajikhoji.passwordmanager.model;
 public class LabelEntity {
 
     public static final long UNDEFINED_LABEL_ID = -5;
-    public static final int MAX_LABEL_CAP = 15;
+    public static final int MAX_LABEL_CAP = 16;
     public static final String DEFAULT_LABEL_NAME = "Unlabeled";
     public static final LabelEntity NULL_LABEL = new LabelEntity(UNDEFINED_LABEL_ID, "Any");
     private long labelId = UNDEFINED_LABEL_ID;
