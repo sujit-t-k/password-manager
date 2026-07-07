@@ -14,6 +14,7 @@ import org.ajikhoji.passwordmanager.security.EncryptionService;
 import org.ajikhoji.passwordmanager.util.Utility;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -82,14 +83,12 @@ public class EditAccountScreen extends AccountInfoEditor {
 
             boolean changeMade = !name.equals(info.getAccName()) || !pass.equals(oldPassword) || !platform.equals(info.getPlatform()) ||
                     label.getLabelId() != info.getLabelId() || oldCustomFields.size() != customFieldEntities.size() ||
-                    ((link == null && info.getLink() != null) || (link != null && (info.getLink() == null || !info.getLink().equals(link))));
+                    !Utility.isSameValuedObject(link, info.getLink());
             if(!changeMade) {
                 for(final AccountCustomFieldEntity oldEntity : oldCustomFields) {
-                    if(customFieldEntities.stream()
-                            .filter(entity ->
-                                    entity.getFieldName().equals(oldEntity.getFieldName()) &&
-                                    entity.getFieldValue().equals(oldEntity.getFieldValue())
-                            ).toList().isEmpty()) {
+                    if(customFieldEntities.stream().noneMatch(entity ->
+                            entity.getFieldName().equals(oldEntity.getFieldName()) &&
+                            entity.getFieldValue().equals(oldEntity.getFieldValue()))) {
                         changeMade = true;
                         break;
                     }
@@ -123,7 +122,7 @@ public class EditAccountScreen extends AccountInfoEditor {
                     Utility.showErrorAlert("Update operation aborted", "Something went wrong. Try again later.");
                 }
             } else {
-                Utility.showInformationAlert("Update operation aborted", "No changes detected");
+                Utility.showInformationAlert("Nothing to update", "No changes detected");
             }
         });
 

@@ -74,8 +74,8 @@ public class AccountCustomFieldViewer extends TableView<AccountCustomFieldEntity
                                     data.getFieldName(),
                                     data.getFieldValue(),
                                     (updatedName, updatedValue) -> {
-                                        data.setFieldName(updatedName);
-                                        data.setFieldValue(updatedValue);
+                                        final AccountCustomFieldEntity updatedEntity = new AccountCustomFieldEntity(data.getAccId(), updatedName, updatedValue);
+                                        allFields.set(idx, updatedEntity);
                                         AccountCustomFieldViewer.this.refresh();
                                         adjustTableViewHeight();
                                     }
