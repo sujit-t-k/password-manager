@@ -10,7 +10,11 @@ The documentation is divided into independent sections so that each aspect of th
 
 Learn how the application is structured internally, including the different architectural layers, their responsibilities, and how they interact with one another.
 
+<<<<<<< HEAD
 📄 [Read Application Architecture](app-architecture.md)
+=======
+📄 [Read Application Architecture](application-architecture.md)
+>>>>>>> ca43cb9 (doc: fixed broken link)
 
 ---
 
@@ -60,7 +64,11 @@ This document covers:
 * Encrypted data storage
 * Local encryption and decryption
 
+<<<<<<< HEAD
 📄 [Read Security & Encryption](security-encryption.md)
+=======
+📄 [Read Security & Encryption](security-and-encryption.md)
+>>>>>>> ca43cb9 (doc: fixed broken link)
 
 ---
 

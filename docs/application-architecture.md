@@ -8,7 +8,11 @@ The following diagram illustrates the high-level architecture of the application
 
 > **Application Architecture Diagram**
 >
+<<<<<<< HEAD
 > ![Application Architecture](assets/application_architecture_diagram)
+=======
+> ![Application Architecture](assets/application-architecture-diagram.svg)
+>>>>>>> ca43cb9 (doc: fixed broken link)
 
 ---
 
