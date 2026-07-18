@@ -3,6 +3,7 @@ package org.ajikhoji.passwordmanager;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import org.ajikhoji.passwordmanager.config.AppConfig;
+import org.ajikhoji.passwordmanager.config.AppResources;
 import org.ajikhoji.passwordmanager.config.DbConfig;
 import org.ajikhoji.passwordmanager.security.AesEncryptionService;
 import org.ajikhoji.passwordmanager.security.EncryptionService;
@@ -21,6 +22,7 @@ public class AppStartup extends Application {
 
     @Override
     public void start(Stage stage) {
+        stage.getIcons().add(AppResources.getInstance().imgAppIcon);
         AppConfig.setPrimaryStage(stage);
         AppConfig.setAppFrame(new AppFrame(stage, AppConfig.getScreenWidth() * 0.5D, AppConfig.getScreenHeight() * 0.7D));
         AppConfig.setHostServices(getHostServices());

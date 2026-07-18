@@ -8,10 +8,13 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class DbHandler {
+public class
+DbHandler {
 
-    private final static String STR_DATABASE_URL_ONE = System.getenv("DATABASE_URL_ONE");
-    private final static String STR_DATABASE_URL_TWO = System.getenv("DATABASE_URL_TWO");
+    private final static String STR_DATABASE_URL_ONE_PREFIX = System.getenv("DATABASE_URL_ONE_PREFIX");
+    private final static String STR_DATABASE_URL_ONE_SUFFIX = System.getenv("DATABASE_URL_ONE_SUFFIX");
+    private final static String STR_DATABASE_URL_TWO_PREFIX = System.getenv("DATABASE_URL_TWO_PREFIX");
+    private final static String STR_DATABASE_URL_TWO_SUFFIX = System.getenv("DATABASE_URL_TWO_SUFFIX");
     private final static String STR_DATABASE_NAME = System.getenv("DATABASE_NAME");
     private final static String STR_USER_NAME = System.getenv("DATABASE_USERNAME");
     private final static String STR_PASSWORD = System.getenv("DATABASE_PASSWORD");
@@ -48,7 +51,8 @@ public class DbHandler {
         //open the database and create a new USER with password GRANTING ALL access.
         try {
             Class.forName("org.hsqldb.jdbc.JDBCDriver");
-            final String jdbcUrl = String.format(STR_DATABASE_URL_ONE, STR_DATABASE_PATH, STR_DATABASE_NAME);
+            final String jdbcUrl = String.format("%s%s\\%s%s", STR_DATABASE_URL_ONE_PREFIX, STR_DATABASE_PATH, STR_DATABASE_NAME, STR_DATABASE_URL_ONE_SUFFIX);
+            System.out.println(jdbcUrl);
             this.con = DriverManager.getConnection(jdbcUrl, "SA", "");
 
             this.con.setAutoCommit(false);
@@ -70,7 +74,7 @@ public class DbHandler {
         }
 
         //deleting default user to restrict access through it.
-        final String jdbcUrl = String.format(STR_DATABASE_URL_TWO, STR_DATABASE_PATH, STR_DATABASE_NAME);
+        final String jdbcUrl = String.format("%s%s\\%s%s", STR_DATABASE_URL_TWO_PREFIX, STR_DATABASE_PATH, STR_DATABASE_NAME, STR_DATABASE_URL_TWO_SUFFIX);
         try (final Connection conn = DriverManager.getConnection(jdbcUrl, STR_USER_NAME, STR_PASSWORD);
              final Statement stmt = conn.createStatement()) {
             stmt.executeUpdate("DROP USER SA;");
@@ -93,7 +97,7 @@ public class DbHandler {
     private void init() {
         try {
             Class.forName("org.hsqldb.jdbc.JDBCDriver");
-            final String jdbcUrl = String.format(STR_DATABASE_URL_TWO, STR_DATABASE_PATH, STR_DATABASE_NAME);
+            final String jdbcUrl = String.format("%s%s\\%s%s", STR_DATABASE_URL_TWO_PREFIX, STR_DATABASE_PATH, STR_DATABASE_NAME, STR_DATABASE_URL_TWO_SUFFIX);
             this.con = DriverManager.getConnection(jdbcUrl, STR_USER_NAME, STR_PASSWORD);
         } catch (final ClassNotFoundException | SQLException e) {
             System.err.println(DbHandler.class.getCanonicalName() + " - Constructor: Error in opening database.");
